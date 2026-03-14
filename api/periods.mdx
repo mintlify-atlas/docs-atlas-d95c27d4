@@ -1,0 +1,405 @@
+---
+title: 'Periods'
+description: 'Endpoints for managing accounting periods and financial cycles'
+---
+
+## Periods Management
+
+### List Periods
+
+<api method="GET" endpoint="/api/periodos/periodos/" auth="bearer" />
+
+Retrieve all periods for the authenticated user's community.
+
+**Authentication Required:** Yes
+
+**Filtering:** Results are automatically filtered by the authenticated user's community.
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Periodo 2024",
+    "fecha_inicio": "2024-01-01",
+    "fecha_fin": "2024-12-31",
+    "comunidad": 1,
+    "comunidad_nombre": "Comunidad Central",
+    "monto_asignado": "1000000.00",
+    "monto_anterior": "50000.00",
+    "activo": true,
+    "saldo_remanente": "850000.00"
+  },
+  {
+    "id": 2,
+    "nombre": "Periodo 2023",
+    "fecha_inicio": "2023-01-01",
+    "fecha_fin": "2023-12-31",
+    "comunidad": 1,
+    "comunidad_nombre": "Comunidad Central",
+    "monto_asignado": "800000.00",
+    "monto_anterior": "0.00",
+    "activo": false,
+    "saldo_remanente": "50000.00"
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Period unique identifier
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Name/title of the period
+</ResponseField>
+
+<ResponseField name="fecha_inicio" type="string">
+  Period start date (YYYY-MM-DD format)
+</ResponseField>
+
+<ResponseField name="fecha_fin" type="string">
+  Period end date (YYYY-MM-DD format)
+</ResponseField>
+
+<ResponseField name="comunidad" type="integer">
+  ID of the associated community
+</ResponseField>
+
+<ResponseField name="comunidad_nombre" type="string">
+  Name of the associated community
+</ResponseField>
+
+<ResponseField name="monto_asignado" type="string">
+  Budget amount assigned for this period (decimal)
+</ResponseField>
+
+<ResponseField name="monto_anterior" type="string">
+  Carry-over amount from previous period (decimal)
+</ResponseField>
+
+<ResponseField name="activo" type="boolean">
+  Whether the period is currently active
+</ResponseField>
+
+<ResponseField name="saldo_remanente" type="string">
+  Remaining balance (calculated: monto_asignado + monto_anterior - total_pagado)
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/periodos/periodos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get(
+    'https://api.auditoriapp.com/api/periodos/periodos/',
+    headers=headers
+)
+periodos = response.json()
+```
+</CodeGroup>
+
+---
+
+### Create Period
+
+<api method="POST" endpoint="/api/periodos/periodos/" auth="bearer" />
+
+Create a new accounting period.
+
+**Authentication Required:** Yes
+
+**Note:** The period is automatically associated with the authenticated user's community.
+
+<ParamField body="nombre" type="string" required>
+  Name/title for the period (e.g., "Periodo 2024")
+</ParamField>
+
+<ParamField body="fecha_inicio" type="string" required>
+  Period start date (YYYY-MM-DD format)
+</ParamField>
+
+<ParamField body="fecha_fin" type="string" required>
+  Period end date (YYYY-MM-DD format)
+</ParamField>
+
+<ParamField body="monto_asignado" type="string" default="0.00">
+  Budget amount assigned for this period
+</ParamField>
+
+<ParamField body="monto_anterior" type="string" default="0.00">
+  Carry-over amount from previous period
+</ParamField>
+
+<ParamField body="activo" type="boolean" default="true">
+  Whether the period should be active
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 3,
+  "nombre": "Periodo 2025",
+  "fecha_inicio": "2025-01-01",
+  "fecha_fin": "2025-12-31",
+  "comunidad": 1,
+  "comunidad_nombre": "Comunidad Central",
+  "monto_asignado": "1200000.00",
+  "monto_anterior": "850000.00",
+  "activo": true,
+  "saldo_remanente": "2050000.00"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/periodos/periodos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Periodo 2025",
+    "fecha_inicio": "2025-01-01",
+    "fecha_fin": "2025-12-31",
+    "monto_asignado": "1200000.00",
+    "monto_anterior": "850000.00",
+    "activo": true
+  }'
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'nombre': 'Periodo 2025',
+    'fecha_inicio': '2025-01-01',
+    'fecha_fin': '2025-12-31',
+    'monto_asignado': '1200000.00',
+    'activo': True
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/periodos/periodos/',
+    headers=headers,
+    json=data
+)
+periodo = response.json()
+```
+</CodeGroup>
+
+---
+
+### Get Period Details
+
+<api method="GET" endpoint="/api/periodos/periodos/{id}/" auth="bearer" />
+
+Retrieve details of a specific period.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Period ID
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 1,
+  "nombre": "Periodo 2024",
+  "fecha_inicio": "2024-01-01",
+  "fecha_fin": "2024-12-31",
+  "comunidad": 1,
+  "comunidad_nombre": "Comunidad Central",
+  "monto_asignado": "1000000.00",
+  "monto_anterior": "50000.00",
+  "activo": true,
+  "saldo_remanente": "850000.00"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/periodos/periodos/1/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+---
+
+### Update Period
+
+<api method="PUT" endpoint="/api/periodos/periodos/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/periodos/periodos/{id}/" auth="bearer" />
+
+Update a period (PUT for full update, PATCH for partial update).
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Period ID
+</ParamField>
+
+<ParamField body="nombre" type="string">
+  Name/title for the period
+</ParamField>
+
+<ParamField body="fecha_inicio" type="string">
+  Period start date (YYYY-MM-DD format)
+</ParamField>
+
+<ParamField body="fecha_fin" type="string">
+  Period end date (YYYY-MM-DD format)
+</ParamField>
+
+<ParamField body="monto_asignado" type="string">
+  Budget amount assigned
+</ParamField>
+
+<ParamField body="monto_anterior" type="string">
+  Carry-over amount
+</ParamField>
+
+<ParamField body="activo" type="boolean">
+  Whether the period is active
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH https://api.auditoriapp.com/api/periodos/periodos/1/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "monto_asignado": "1500000.00"
+  }'
+```
+</CodeGroup>
+
+---
+
+### Close Period
+
+<api method="POST" endpoint="/api/periodos/periodos/{id}/cerrar/" auth="bearer" />
+
+Close an active period and automatically create the next period.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Period ID to close
+</ParamField>
+
+**Process:**
+1. Validates the period is currently active
+2. Calculates total paid expenses (from rendiciones with `pagado` status)
+3. Calculates remaining balance (total resources - paid expenses)
+4. Marks the period as inactive
+5. Automatically creates the next period with:
+   - Start date: day after current period end
+   - End date: one year from start date
+   - `monto_anterior`: remaining balance from closed period
+   - `monto_asignado`: 0 (to be defined later)
+
+<ResponseExample>
+```json
+{
+  "message": "Periodo cerrado exitosamente.",
+  "resumen": {
+    "total_recursos": "1050000.00",
+    "gastos_pagados": "200000.00",
+    "saldo_remanente": "850000.00"
+  },
+  "siguiente_periodo": {
+    "id": 3,
+    "nombre": "Periodo 2025",
+    "fecha_inicio": "2025-01-01",
+    "fecha_fin": "2025-12-31",
+    "comunidad": 1,
+    "comunidad_nombre": "Comunidad Central",
+    "monto_asignado": "0.00",
+    "monto_anterior": "850000.00",
+    "activo": true,
+    "saldo_remanente": "850000.00"
+  }
+}
+```
+</ResponseExample>
+
+<ResponseField name="message" type="string">
+  Success message
+</ResponseField>
+
+<ResponseField name="resumen.total_recursos" type="string">
+  Total available resources (assigned + carry-over)
+</ResponseField>
+
+<ResponseField name="resumen.gastos_pagados" type="string">
+  Total expenses paid during the period
+</ResponseField>
+
+<ResponseField name="resumen.saldo_remanente" type="string">
+  Remaining balance transferred to next period
+</ResponseField>
+
+<ResponseField name="siguiente_periodo" type="object">
+  Details of the automatically created next period
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/periodos/periodos/1/cerrar/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.post(
+    'https://api.auditoriapp.com/api/periodos/periodos/1/cerrar/',
+    headers=headers
+)
+result = response.json()
+print(f"Saldo remanente: {result['resumen']['saldo_remanente']}")
+print(f"Nuevo periodo: {result['siguiente_periodo']['nombre']}")
+```
+</CodeGroup>
+
+---
+
+### Delete Period
+
+<api method="DELETE" endpoint="/api/periodos/periodos/{id}/" auth="bearer" />
+
+Delete a period.
+
+**Authentication Required:** Yes
+
+**Warning:** This will cascade delete all associated projects and data.
+
+<ParamField path="id" type="integer" required>
+  Period ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api.auditoriapp.com/api/periodos/periodos/1/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+## Period States
+
+Periods can be in two states:
+
+- **Active (`activo: true`)**: The current operational period where new projects can be created
+- **Closed (`activo: false`)**: Historical period that has been finalized
+
+Only one period should typically be active at a time per community.

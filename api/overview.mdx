@@ -1,0 +1,144 @@
+---
+title: 'API Overview'
+description: 'Introduction to the Auditoriapp REST API'
+---
+
+## Base URL
+
+All API requests should be made to:
+
+```
+http://localhost:8000/api/
+```
+
+## API Architecture
+
+Auditoriapp is built using Django REST Framework and provides a comprehensive RESTful API for managing community audit operations. The API follows REST conventions and returns JSON responses.
+
+## Available Endpoints
+
+The API is organized into the following modules:
+
+### Authentication
+- `/api/token/` - JWT token authentication
+- `/api/token/refresh/` - Refresh access tokens
+- `/api/auth/` - User authentication and profile management
+
+### Core Modules
+
+<CardGroup cols={2}>
+  <Card title="Communities" icon="users">
+    `/api/comunidades/` - Community and council management
+  </Card>
+  
+  <Card title="Projects" icon="diagram-project">
+    `/api/proyectos/` - Project tracking and progress reports
+  </Card>
+  
+  <Card title="Finance" icon="dollar-sign">
+    `/api/finanzas/` - Financial transactions and budgets
+  </Card>
+  
+  <Card title="Periods" icon="calendar">
+    `/api/periodos/` - Accounting periods management
+  </Card>
+  
+  <Card title="Beneficiaries" icon="hand-holding-heart">
+    `/api/beneficiarios/` - Beneficiary information
+  </Card>
+  
+  <Card title="Documents" icon="file-alt">
+    `/api/documentos/` - Document management
+  </Card>
+  
+  <Card title="Auditors" icon="clipboard-check">
+    `/api/auditores/` - Auditor management
+  </Card>
+  
+  <Card title="Reports" icon="chart-line">
+    `/api/reportes/` - Report generation
+  </Card>
+  
+  <Card title="Submissions" icon="paper-plane">
+    `/api/rendiciones/` - Financial submissions
+  </Card>
+  
+  <Card title="Dashboard" icon="gauge">
+    `/api/dashboard/` - Dashboard data and analytics
+  </Card>
+</CardGroup>
+
+## Authentication
+
+The Auditoriapp API uses JWT (JSON Web Token) authentication. To access protected endpoints, you must include a valid access token in the Authorization header:
+
+```bash
+Authorization: Bearer <your_access_token>
+```
+
+See the [Authentication](/api/authentication) page for detailed information on obtaining and using tokens.
+
+## Response Format
+
+All API responses are returned in JSON format. Successful responses will include the requested data, while error responses will include an `error` field with a description of what went wrong.
+
+### Success Response Example
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "username": "admin",
+  "nombre": "Administrator",
+  "email": "admin@example.com",
+  "rol": "admin"
+}
+```
+
+### Error Response Example
+
+```json
+{
+  "error": "Credenciales inválidas"
+}
+```
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes:
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | OK - Request successful |
+| 201 | Created - Resource created successfully |
+| 400 | Bad Request - Invalid request parameters |
+| 401 | Unauthorized - Authentication required or failed |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - Resource not found |
+| 500 | Internal Server Error - Server error |
+
+## API Documentation
+
+Interactive API documentation is available at:
+
+- **Swagger UI**: `http://localhost:8000/api/docs/`
+- **ReDoc**: `http://localhost:8000/api/redoc/`
+- **OpenAPI Schema**: `http://localhost:8000/api/schema/`
+
+## CORS Configuration
+
+The API accepts requests from the following origins:
+
+- `http://localhost:5173`
+- `http://127.0.0.1:5173`
+
+Cross-origin requests include credentials support.
+
+## Rate Limiting
+
+Currently, there are no rate limits enforced on the API. This may change in production environments.
+
+## Versioning
+
+**Current Version**: 1.0.0
+
+The API version is included in the OpenAPI schema but not in the URL path. Breaking changes will be communicated through version updates.

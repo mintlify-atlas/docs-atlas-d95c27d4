@@ -1,0 +1,341 @@
+---
+title: 'Users & Authentication'
+description: 'Endpoints for user authentication and profile management'
+---
+
+## Authentication
+
+### Login
+
+<api method="POST" endpoint="/api/auth/login/" />
+
+Authenticate a user and receive JWT tokens.
+
+<ParamField body="username" type="string" required>
+  User's username
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "admin",
+    "nombre": "Administrator",
+    "email": "admin@example.com",
+    "rol": "admin",
+    "comunidad": {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "nombre": "Comunidad Central"
+    }
+  }
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "securepassword123"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/auth/login/',
+    json={
+        'username': 'admin',
+        'password': 'securepassword123'
+    }
+)
+data = response.json()
+access_token = data['access']
+```
+</CodeGroup>
+
+---
+
+### Get JWT Token
+
+<api method="POST" endpoint="/api/token/" />
+
+Obtain JWT access and refresh tokens.
+
+<ParamField body="username" type="string" required>
+  User's username
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "admin",
+    "nombre": "Administrator",
+    "email": "admin@example.com",
+    "rol": "admin",
+    "comunidad": {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "nombre": "Comunidad Central"
+    }
+  }
+}
+```
+</ResponseExample>
+
+---
+
+### Refresh Token
+
+<api method="POST" endpoint="/api/token/refresh/" />
+
+Refresh an access token using a valid refresh token.
+
+<ParamField body="refresh" type="string" required>
+  Valid refresh token
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/token/refresh/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+  }'
+```
+</CodeGroup>
+
+---
+
+## User Management
+
+### Get User Profile
+
+<api method="GET" endpoint="/api/auth/profile/" auth="bearer" />
+
+Retrieve the authenticated user's profile information.
+
+**Authentication Required:** Yes (JWT Bearer Token)
+
+<ResponseExample>
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "username": "admin",
+  "nombre": "Administrator",
+  "email": "admin@example.com",
+  "rol": "admin",
+  "comunidad": "123e4567-e89b-12d3-a456-426614174000",
+  "comunidad_nombre": "Comunidad Central",
+  "is_active": true,
+  "fondos_recibidos": 0,
+  "fondos_ejecutados": 0,
+  "saldo_restante": 0,
+  "proyectos_en_ejecucion": 0
+}
+```
+</ResponseExample>
+
+<ResponseField name="id" type="string">
+  User unique identifier (UUID)
+</ResponseField>
+
+<ResponseField name="username" type="string">
+  Username for authentication
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Full name of the user
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  User's email address
+</ResponseField>
+
+<ResponseField name="rol" type="string">
+  User role. One of: `admin`, `auditor`, `usuario`, `directorio`, `presidente`, `ito`, `cpa`
+</ResponseField>
+
+<ResponseField name="comunidad" type="string">
+  ID of the associated community (UUID)
+</ResponseField>
+
+<ResponseField name="comunidad_nombre" type="string">
+  Name of the associated community
+</ResponseField>
+
+<ResponseField name="is_active" type="boolean">
+  Whether the user account is active
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/auth/profile/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': f'Bearer {access_token}'
+}
+
+response = requests.get(
+    'https://api.auditoriapp.com/api/auth/profile/',
+    headers=headers
+)
+profile = response.json()
+```
+</CodeGroup>
+
+---
+
+### Create User
+
+<api method="POST" endpoint="/api/auth/create-user/" auth="bearer" />
+
+Create a new user account. Only available to Admin Consejo and Admin Comunidad roles.
+
+**Authentication Required:** Yes (Admin roles only)
+
+<ParamField body="username" type="string" required>
+  Unique username for the new user
+</ParamField>
+
+<ParamField body="nombre" type="string" required>
+  Full name of the user
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Email address
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+<ParamField body="rol" type="string" required>
+  User role: `admin`, `auditor`, `usuario`, `directorio`, `presidente`, `ito`, or `cpa`
+</ParamField>
+
+<ParamField body="comunidad" type="string">
+  Community ID (UUID). For Admin Comunidad, this is automatically set to their community.
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": "660e8400-e29b-41d4-a716-446655440001",
+  "username": "newuser",
+  "nombre": "New User",
+  "email": "newuser@example.com",
+  "rol": "usuario",
+  "comunidad": "123e4567-e89b-12d3-a456-426614174000",
+  "comunidad_nombre": "Comunidad Central",
+  "is_active": true,
+  "fondos_recibidos": 0,
+  "fondos_ejecutados": 0,
+  "saldo_restante": 0,
+  "proyectos_en_ejecucion": 0
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/auth/create-user/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newuser",
+    "nombre": "New User",
+    "email": "newuser@example.com",
+    "password": "securepass123",
+    "rol": "usuario",
+    "comunidad": "123e4567-e89b-12d3-a456-426614174000"
+  }'
+```
+</CodeGroup>
+
+---
+
+### Admin Community Start
+
+<api method="GET" endpoint="/api/auth/inicio-admin-comunidad/" auth="bearer" />
+
+Determine the appropriate initial view for community administrators.
+
+**Authentication Required:** Yes (Admin role with community only)
+
+<ResponseExample>
+```json
+{
+  "redirect": "dashboard",
+  "periodo_id": "789e4567-e89b-12d3-a456-426614174000"
+}
+```
+</ResponseExample>
+
+or if no active period:
+
+```json
+{
+  "redirect": "crear_periodo"
+}
+```
+
+<ResponseField name="redirect" type="string">
+  Where to redirect the admin: `dashboard` or `crear_periodo`
+</ResponseField>
+
+<ResponseField name="periodo_id" type="string">
+  Active period ID if redirecting to dashboard
+</ResponseField>
+
+## User Roles
+
+The system supports the following user roles:
+
+| Role | Description |
+|------|-------------|
+| `admin` | System administrator |
+| `auditor` | Auditor with review privileges |
+| `usuario` | Standard user |
+| `directorio` | Community board member |
+| `presidente` | Community president |
+| `ito` | ITO / Responsible party |
+| `cpa` | CPA Reviewer |
+
+## Authentication Flow
+
+1. **Login**: Use `/api/auth/login/` or `/api/token/` to obtain access and refresh tokens
+2. **Access Protected Resources**: Include the access token in the `Authorization` header as `Bearer YOUR_ACCESS_TOKEN`
+3. **Refresh**: When the access token expires (60 minutes), use `/api/token/refresh/` to obtain a new one
+4. **Token Rotation**: Refresh tokens are rotated on each refresh (valid for 7 days)

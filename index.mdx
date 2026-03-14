@@ -1,97 +1,88 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Auditoriapp Documentation"
+description: "Multi-tenant SaaS platform for audit, traceability, and transparent fund management for community projects"
 ---
 
-## Setting up
+<div style={{
+  background: 'linear-gradient(135deg, #94cb04 0%, #545454 100%)',
+  borderRadius: '8px',
+  padding: '48px 32px',
+  marginBottom: '32px',
+  color: '#ffffff'
+}}>
+  <h1 style={{ fontSize: '48px', fontWeight: '700', marginBottom: '16px', color: '#ffffff' }}>
+    Auditoriapp
+  </h1>
+  <p style={{ fontSize: '18px', marginBottom: '24px', color: '#ffffff', opacity: '0.95' }}>
+    Transform fund management and auditing with transparent, multi-tenant workflows that replace manual processes with digital accountability.
+  </p>
+</div>
 
-Get your documentation site up and running in minutes.
+## Why Auditoriapp?
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+Auditoriapp replaces opaque Excel spreadsheets and PDF-based workflows with a centralized digital platform that ensures data isolation between communities and provides real-time oversight for auditors.
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Multi-Tenant Architecture" icon="building" href="/features/multi-tenancy">
+    Complete data isolation ensures each community accesses only their own projects and financial data
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Role-Based Access Control" icon="shield" href="/features/role-based-access">
+    Granular permissions for Community Admins, Auditors, Presidents, ITOs, and CPAs
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Project Lifecycle Management" icon="diagram-project" href="/features/project-management">
+    Track projects from initial approval through execution to final audit and closure
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Financial Tracking" icon="dollar-sign" href="/features/financial-tracking">
+    Period-based budget allocation with real-time expense tracking and analytics
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Get Started
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Set up your first community and create a project in minutes
+  </Card>
+  <Card title="Architecture Overview" icon="sitemap" href="/architecture">
+    Understand the technical architecture and design principles
+  </Card>
+  <Card title="User Guides" icon="book-open" href="/guides/community-admin">
+    Learn how to use Auditoriapp as a Community Admin or Auditor
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Integrate with the REST API and build custom workflows
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Key Features
 
-## Need inspiration?
+<AccordionGroup>
+  <Accordion title="Audit Workflow & Transparency">
+    Complete audit trail from budget allocation to expense justification. Auditors have cross-community visibility to validate all financial movements with attached evidence and documentation.
+  </Accordion>
+  <Accordion title="Document Management">
+    Upload and validate receipts, invoices, and evidence for every expense. Documents are linked directly to expenses and projects for seamless audit review.
+  </Accordion>
+  <Accordion title="Real-Time Analytics">
+    Interactive dashboards with KPIs showing budget execution, project status, and financial health across all communities or individual tenants.
+  </Accordion>
+  <Accordion title="Period-Based Budgets">
+    Organize funding in discrete periods with allocated budgets, carry-forward balances, and time-bound project execution tracking.
+  </Accordion>
+</AccordionGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## Tech Stack
+
+Built with Django REST Framework, React, PostgreSQL, and JWT authentication for secure, scalable multi-tenant SaaS.
+
+<CardGroup cols={3}>
+  <Card title="Django REST Framework" icon="python">
+    Backend API with ORM-level tenant filtering
+  </Card>
+  <Card title="React + Vite" icon="react">
+    Modern frontend with Tailwind CSS
+  </Card>
+  <Card title="PostgreSQL" icon="database">
+    Relational database with multi-tenant isolation
+  </Card>
+</CardGroup>

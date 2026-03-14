@@ -1,0 +1,760 @@
+---
+title: Deployment
+description: Deploy Auditoriapp to production environments
+---
+
+## Pre-Deployment Checklist
+
+Before deploying to production, ensure you have completed the following:
+
+<Steps>
+  <Step title="Security Configuration">
+    - Set `DEBUG = False` in settings
+    - Configure strong `SECRET_KEY`
+    - Set proper `ALLOWED_HOSTS`
+    - Enable HTTPS settings
+    - Configure CORS properly
+  </Step>
+
+  <Step title="Database Setup">
+    - Set up production database (MySQL/PostgreSQL)
+    - Run migrations
+    - Create superuser account
+    - Backup strategy in place
+  </Step>
+
+  <Step title="Static Files">
+    - Collect static files
+    - Configure static file serving
+    - Set up media file storage
+  </Step>
+
+  <Step title="Environment Variables">
+    - All sensitive data in environment variables
+    - Production `.env` file configured
+    - No secrets in version control
+  </Step>
+</Steps>
+
+## Production Settings
+
+### Security Settings
+
+Update `backend/auditoriapp/settings.py` for production:
+
+```python
+# Security
+DEBUG = False
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']
+
+# HTTPS
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CRSF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# HSTS
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+```
+
+### CORS Configuration
+
+Replace development CORS settings (`backend/auditoriapp/settings.py:173-180`):
+
+```python
+# Remove this in production
+# CORS_ALLOW_ALL_ORIGINS = True
+
+# Use specific origins
+CORS_ALLOWED_ORIGINS = [
+    "https://yourdomain.com",
+    "https://www.yourdomain.com",
+]
+CORS_ALLOW_CREDENTIALS = True
+```
+
+### Database Configuration
+
+Configure production database using environment variables:
+
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": os.getenv("DATABASE_PORT", "3306"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}
+```
+
+## Deployment Options
+
+### Option 1: Traditional Server (Gunicorn + Nginx)
+
+<Steps>
+  <Step title="Install production dependencies">
+    Gunicorn is already in requirements.txt (`backend/requirements.txt:55`):
+    ```bash
+    pip install gunicorn==22.0.0 whitenoise==6.7.0
+    ```
+  </Step>
+
+  <Step title="Configure Gunicorn">
+    Create `gunicorn_config.py`:
+    ```python
+    bind = "0.0.0.0:8000"
+    workers = 4
+    worker_class = "sync"
+    max_requests = 1000
+    timeout = 30
+    keepalive = 2
+    errorlog = "/var/log/gunicorn/error.log"
+    accesslog = "/var/log/gunicorn/access.log"
+    loglevel = "info"
+    ```
+  </Step>
+
+  <Step title="Create systemd service">
+    Create `/etc/systemd/system/auditoriapp.service`:
+    ```ini
+    [Unit]
+    Description=Auditoriapp Gunicorn Service
+    After=network.target
+
+    [Service]
+    User=www-data
+    Group=www-data
+    WorkingDirectory=/var/www/auditoriapp/backend
+    Environment="PATH=/var/www/auditoriapp/venv/bin"
+    EnvironmentFile=/var/www/auditoriapp/.env
+    ExecStart=/var/www/auditoriapp/venv/bin/gunicorn \
+              --config gunicorn_config.py \
+              auditoriapp.wsgi:application
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+  </Step>
+
+  <Step title="Configure Nginx">
+    Create `/etc/nginx/sites-available/auditoriapp`:
+    ```nginx
+    upstream auditoriapp {
+        server 127.0.0.1:8000;
+    }
+
+    server {
+        listen 80;
+        server_name yourdomain.com www.yourdomain.com;
+        return 301 https://$server_name$request_uri;
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name yourdomain.com www.yourdomain.com;
+
+        ssl_certificate /etc/ssl/certs/yourdomain.crt;
+        ssl_certificate_key /etc/ssl/private/yourdomain.key;
+
+        client_max_body_size 10M;
+
+        location /static/ {
+            alias /var/www/auditoriapp/backend/staticfiles/;
+        }
+
+        location /media/ {
+            alias /var/www/auditoriapp/backend/media/;
+        }
+
+        location / {
+            proxy_pass http://auditoriapp;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+    ```
+  </Step>
+
+  <Step title="Enable and start services">
+    ```bash
+    sudo systemctl enable auditoriapp
+    sudo systemctl start auditoriapp
+    sudo systemctl enable nginx
+    sudo systemctl restart nginx
+    ```
+  </Step>
+</Steps>
+
+### Option 2: Docker Deployment
+
+Create a `Dockerfile` for the backend:
+
+```dockerfile
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY . .
+
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
+EXPOSE 8000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "auditoriapp.wsgi:application"]
+```
+
+Create a `Dockerfile` for the frontend:
+
+```dockerfile
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    command: gunicorn --bind 0.0.0.0:8000 auditoriapp.wsgi:application
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A auditoriapp worker -l info
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+  static_volume:
+  media_volume:
+```
+
+Deploy using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+### Option 3: Cloud Platform (AWS/Azure/GCP)
+
+<Tabs>
+  <Tab title="AWS Elastic Beanstalk">
+    <Steps>
+      <Step title="Install EB CLI">
+        ```bash
+        pip install awsebcli
+        ```
+      </Step>
+
+      <Step title="Initialize EB application">
+        ```bash
+        cd backend
+        eb init -p python-3.11 auditoriapp
+        ```
+      </Step>
+
+      <Step title="Create environment">
+        ```bash
+        eb create auditoriapp-prod
+        ```
+      </Step>
+
+      <Step title="Deploy">
+        ```bash
+        eb deploy
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Heroku">
+    Create `Procfile`:
+    ```
+    web: gunicorn auditoriapp.wsgi:application --bind 0.0.0.0:$PORT
+    release: python manage.py migrate
+    ```
+
+    Deploy:
+    ```bash
+    heroku create auditoriapp
+    heroku addons:create heroku-postgresql
+    heroku config:set SECRET_KEY=your-secret-key
+    git push heroku main
+    ```
+  </Tab>
+
+  <Tab title="DigitalOcean App Platform">
+    Create `app.yaml`:
+    ```yaml
+    name: auditoriapp
+    services:
+    - name: backend
+      github:
+        repo: your-repo/auditoriapp
+        branch: main
+        deploy_on_push: true
+      source_dir: /backend
+      run_command: gunicorn auditoriapp.wsgi:application
+      envs:
+      - key: SECRET_KEY
+        scope: RUN_TIME
+        value: ${SECRET_KEY}
+    databases:
+    - name: db
+      engine: MYSQL
+      version: "8"
+    ```
+  </Tab>
+</Tabs>
+
+## Frontend Deployment
+
+### Build Frontend
+
+```bash
+cd frontend
+npm run build
+```
+
+This creates optimized production files in `dist/` directory using Vite (`frontend/package.json:8`).
+
+### Serve Static Files
+
+<Tabs>
+  <Tab title="Nginx">
+    ```nginx
+    server {
+        listen 80;
+        server_name yourdomain.com;
+        root /var/www/auditoriapp/frontend/dist;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        location /api {
+            proxy_pass http://localhost:8000;
+        }
+    }
+    ```
+  </Tab>
+
+  <Tab title="S3 + CloudFront">
+    ```bash
+    # Upload to S3
+    aws s3 sync dist/ s3://your-bucket-name/
+
+    # Invalidate CloudFront cache
+    aws cloudfront create-invalidation \
+      --distribution-id YOUR_DIST_ID \
+      --paths "/*"
+    ```
+  </Tab>
+
+  <Tab title="Netlify">
+    Create `netlify.toml`:
+    ```toml
+    [build]
+      command = "npm run build"
+      publish = "dist"
+
+    [[redirects]]
+      from = "/*"
+      to = "/index.html"
+      status = 200
+    ```
+
+    Deploy:
+    ```bash
+    npm install -g netlify-cli
+    netlify deploy --prod
+    ```
+  </Tab>
+</Tabs>
+
+## Database Migration
+
+<Steps>
+  <Step title="Run migrations">
+    ```bash
+    python manage.py migrate
+    ```
+  </Step>
+
+  <Step title="Create superuser">
+    ```bash
+    python manage.py createsuperuser
+    ```
+    
+    Or use the provided script:
+    ```bash
+    python create_admin_user.py
+    ```
+  </Step>
+
+  <Step title="Load initial data (optional)">
+    ```bash
+    python manage.py loaddata initial_data.json
+    ```
+  </Step>
+</Steps>
+
+## Static Files
+
+Auditoriapp uses WhiteNoise for static file serving (`backend/requirements.txt:56`).
+
+### Collect Static Files
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+Static files are collected to `STATIC_ROOT` (`backend/auditoriapp/settings.py:130`).
+
+### Configure WhiteNoise
+
+Add to middleware in `settings.py`:
+
+```python
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this
+    # ... other middleware
+]
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+```
+
+## Monitoring & Logging
+
+### Application Monitoring
+
+<CardGroup cols={2}>
+  <Card title="Sentry" icon="bug">
+    Error tracking and performance monitoring
+    ```bash
+    pip install sentry-sdk
+    ```
+  </Card>
+
+  <Card title="New Relic" icon="chart-line">
+    Application performance monitoring
+    ```bash
+    pip install newrelic
+    ```
+  </Card>
+
+  <Card title="Datadog" icon="database">
+    Infrastructure and application monitoring
+    ```bash
+    pip install ddtrace
+    ```
+  </Card>
+
+  <Card title="ELK Stack" icon="magnifying-glass">
+    Centralized logging and analysis
+  </Card>
+</CardGroup>
+
+### Configure Logging
+
+```python
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/log/auditoriapp/django.log',
+            'maxBytes': 1024*1024*10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+```
+
+## Backup Strategy
+
+### Database Backups
+
+<Tabs>
+  <Tab title="MySQL">
+    ```bash
+    # Create backup
+    mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME > backup_$(date +%Y%m%d).sql
+
+    # Restore backup
+    mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < backup_20260314.sql
+    ```
+  </Tab>
+
+  <Tab title="Automated with cron">
+    ```bash
+    # Add to crontab
+    0 2 * * * /path/to/backup_script.sh
+    ```
+
+    Create `backup_script.sh`:
+    ```bash
+    #!/bin/bash
+    BACKUP_DIR="/var/backups/auditoriapp"
+    DATE=$(date +%Y%m%d_%H%M%S)
+    mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME | gzip > $BACKUP_DIR/db_$DATE.sql.gz
+    find $BACKUP_DIR -type f -mtime +30 -delete
+    ```
+  </Tab>
+</Tabs>
+
+### Media Files Backup
+
+```bash
+# Backup media files
+tar -czf media_backup_$(date +%Y%m%d).tar.gz /path/to/media/
+
+# Sync to S3
+aws s3 sync /path/to/media/ s3://your-backup-bucket/media/
+```
+
+## SSL/TLS Configuration
+
+### Using Let's Encrypt
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain certificate
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Auto-renewal (already configured by certbot)
+sudo certbot renew --dry-run
+```
+
+## Performance Optimization
+
+<CardGroup cols={2}>
+  <Card title="Database Indexing" icon="database">
+    Add indexes to frequently queried fields
+  </Card>
+
+  <Card title="Caching" icon="bolt">
+    Implement Redis caching for API responses
+  </Card>
+
+  <Card title="CDN" icon="globe">
+    Use CloudFront or similar for static assets
+  </Card>
+
+  <Card title="Load Balancing" icon="scale-balanced">
+    Distribute traffic across multiple servers
+  </Card>
+</CardGroup>
+
+## Health Checks
+
+Create a health check endpoint:
+
+```python
+# views.py
+from django.http import JsonResponse
+from django.db import connection
+
+def health_check(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return JsonResponse({"status": "healthy", "database": "connected"})
+    except Exception as e:
+        return JsonResponse({"status": "unhealthy", "error": str(e)}, status=500)
+```
+
+## Rollback Strategy
+
+In case of deployment issues:
+
+<Steps>
+  <Step title="Revert code">
+    ```bash
+    git revert HEAD
+    git push origin main
+    ```
+  </Step>
+
+  <Step title="Restore database">
+    ```bash
+    mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < previous_backup.sql
+    ```
+  </Step>
+
+  <Step title="Restart services">
+    ```bash
+    sudo systemctl restart auditoriapp
+    sudo systemctl restart nginx
+    ```
+  </Step>
+</Steps>
+
+## Post-Deployment
+
+<Checklist>
+  - [ ] Verify all services are running
+  - [ ] Test API endpoints
+  - [ ] Check frontend accessibility
+  - [ ] Verify database connectivity
+  - [ ] Test authentication flow
+  - [ ] Monitor error logs
+  - [ ] Verify SSL certificate
+  - [ ] Test backup restoration
+  - [ ] Configure monitoring alerts
+  - [ ] Update documentation
+</Checklist>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="502 Bad Gateway">
+    Check if Gunicorn is running:
+    ```bash
+    sudo systemctl status auditoriapp
+    ```
+    
+    Check Nginx error logs:
+    ```bash
+    sudo tail -f /var/log/nginx/error.log
+    ```
+  </Accordion>
+
+  <Accordion title="Static files not loading">
+    Ensure static files are collected:
+    ```bash
+    python manage.py collectstatic --noinput
+    ```
+    
+    Check Nginx static file configuration
+  </Accordion>
+
+  <Accordion title="Database connection errors">
+    Verify database credentials in environment variables
+    
+    Check database service status:
+    ```bash
+    sudo systemctl status mysql
+    ```
+  </Accordion>
+
+  <Accordion title="CORS errors">
+    Verify `CORS_ALLOWED_ORIGINS` includes your frontend domain
+    
+    Check that `corsheaders` middleware is properly configured
+  </Accordion>
+</AccordionGroup>

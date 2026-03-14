@@ -1,0 +1,371 @@
+---
+title: 'Documents'
+description: 'Endpoints for document upload and management'
+---
+
+## Document Management
+
+### List Documents
+
+<api method="GET" endpoint="/api/documentos/" auth="bearer" />
+
+Retrieve all documents.
+
+**Authentication Required:** Yes
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "fecha_subida": "2024-03-10T09:30:00Z",
+    "proyecto": 1,
+    "nombre": "Acta de Asamblea",
+    "tipo": "Acta",
+    "archivo": "/media/documentos/acta_asamblea_1.pdf",
+    "descripcion": "Acta de asamblea extraordinaria para aprobación del proyecto"
+  },
+  {
+    "id": 2,
+    "fecha_subida": "2024-03-10T10:15:00Z",
+    "proyecto": 1,
+    "nombre": "Cotización Proveedor A",
+    "tipo": "Cotizaciones",
+    "archivo": "/media/documentos/cotizacion_a.pdf",
+    "descripcion": "Primera cotización solicitada"
+  },
+  {
+    "id": 3,
+    "fecha_subida": "2024-03-12T14:20:00Z",
+    "proyecto": null,
+    "nombre": "Factura Materiales",
+    "tipo": "Factura",
+    "archivo": "/media/documentos/factura_001.pdf",
+    "descripcion": "Factura por compra de materiales"
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Document unique identifier
+</ResponseField>
+
+<ResponseField name="fecha_subida" type="string">
+  Upload timestamp (ISO 8601 format, auto-generated)
+</ResponseField>
+
+<ResponseField name="proyecto" type="integer">
+  ID of the associated project (nullable)
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Document name/title
+</ResponseField>
+
+<ResponseField name="tipo" type="string">
+  Document type (e.g., "Acta", "Cotizaciones", "Cotizacion Elegida", "Factura", "Boleta", etc.)
+</ResponseField>
+
+<ResponseField name="archivo" type="string">
+  File path to the uploaded document
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Optional description of the document
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/documentos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get(
+    'https://api.auditoriapp.com/api/documentos/',
+    headers=headers
+)
+documentos = response.json()
+```
+</CodeGroup>
+
+---
+
+### Upload Document
+
+<api method="POST" endpoint="/api/documentos/" auth="bearer" />
+
+Upload a new document. This follows the "Upload First" pattern - documents are uploaded before being associated with projects or expenses.
+
+**Authentication Required:** Yes
+
+**Content-Type:** `multipart/form-data`
+
+<ParamField body="nombre" type="string" required>
+  Document name/title
+</ParamField>
+
+<ParamField body="tipo" type="string" required>
+  Document type. Common values:
+  - `Acta` - Assembly minutes
+  - `Cotizaciones` - Quotations
+  - `Cotizacion Elegida` - Selected quotation
+  - `Factura` - Invoice
+  - `Boleta` - Receipt
+  - `Comprobante` - Proof/Voucher
+</ParamField>
+
+<ParamField body="archivo" type="file" required>
+  The file to upload (PDF, image, etc.)
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Optional description
+</ParamField>
+
+<ParamField body="proyecto" type="integer">
+  Project ID to associate with (optional, can be set later)
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 4,
+  "fecha_subida": "2024-03-14T16:45:00Z",
+  "proyecto": null,
+  "nombre": "Nueva Cotización",
+  "tipo": "Cotizaciones",
+  "archivo": "/media/documentos/cotizacion_nueva.pdf",
+  "descripcion": "Cotización de proveedor alternativo"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/documentos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "nombre=Nueva Cotización" \
+  -F "tipo=Cotizaciones" \
+  -F "archivo=@/path/to/document.pdf" \
+  -F "descripcion=Cotización de proveedor alternativo"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'nombre': 'Nueva Cotización',
+    'tipo': 'Cotizaciones',
+    'descripcion': 'Cotización de proveedor alternativo'
+}
+files = {
+    'archivo': open('/path/to/document.pdf', 'rb')
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/documentos/',
+    headers=headers,
+    data=data,
+    files=files
+)
+documento = response.json()
+
+# Save the document ID for later use
+documento_id = documento['id']
+```
+</CodeGroup>
+
+---
+
+### Get Document Details
+
+<api method="GET" endpoint="/api/documentos/{id}/" auth="bearer" />
+
+Retrieve details of a specific document.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Document ID
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 1,
+  "fecha_subida": "2024-03-10T09:30:00Z",
+  "proyecto": 1,
+  "nombre": "Acta de Asamblea",
+  "tipo": "Acta",
+  "archivo": "/media/documentos/acta_asamblea_1.pdf",
+  "descripcion": "Acta de asamblea extraordinaria para aprobación del proyecto"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/documentos/1/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+---
+
+### Update Document
+
+<api method="PUT" endpoint="/api/documentos/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/documentos/{id}/" auth="bearer" />
+
+Update document metadata (PUT for full update, PATCH for partial update).
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Document ID
+</ParamField>
+
+<ParamField body="nombre" type="string">
+  Document name/title
+</ParamField>
+
+<ParamField body="tipo" type="string">
+  Document type
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Description
+</ParamField>
+
+<ParamField body="proyecto" type="integer">
+  Project ID to associate with
+</ParamField>
+
+<ParamField body="archivo" type="file">
+  Replace the file (optional)
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH https://api.auditoriapp.com/api/documentos/4/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proyecto": 1,
+    "descripcion": "Cotización seleccionada"
+  }'
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'proyecto': 1,
+    'descripcion': 'Cotización seleccionada'
+}
+
+response = requests.patch(
+    f'https://api.auditoriapp.com/api/documentos/{documento_id}/',
+    headers=headers,
+    json=data
+)
+updated_doc = response.json()
+```
+</CodeGroup>
+
+---
+
+### Delete Document
+
+<api method="DELETE" endpoint="/api/documentos/{id}/" auth="bearer" />
+
+Delete a document.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Document ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api.auditoriapp.com/api/documentos/4/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+## Document Types
+
+Common document types used in the system:
+
+| Type | Usage | Associated With |
+|------|-------|----------------|
+| `Acta` | Assembly minutes | Projects |
+| `Cotizaciones` | Quotations | Projects |
+| `Cotizacion Elegida` | Selected quotation | Projects |
+| `Factura` | Invoice | Expense submissions |
+| `Boleta` | Receipt | Expense submissions |
+| `Comprobante` | Proof/Voucher | Expense submissions |
+
+## Upload First Pattern
+
+Auditoriapp uses an "Upload First" pattern for file management:
+
+1. **Upload Document**: Use `POST /api/documentos/` to upload the file
+2. **Save Document ID**: Store the returned document ID
+3. **Associate with Entity**: Pass the document ID(s) when creating projects or expenses:
+   - Projects: Use `documentos_ids` array in project creation
+   - Expenses: Use `documentos_ids` array in expense submission
+
+### Example Workflow
+
+```python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+
+# Step 1: Upload documents
+acta_file = open('acta.pdf', 'rb')
+response = requests.post(
+    'https://api.auditoriapp.com/api/documentos/',
+    headers=headers,
+    data={'nombre': 'Acta Asamblea', 'tipo': 'Acta'},
+    files={'archivo': acta_file}
+)
+acta_id = response.json()['id']
+
+cotizacion_file = open('cotizacion.pdf', 'rb')
+response = requests.post(
+    'https://api.auditoriapp.com/api/documentos/',
+    headers=headers,
+    data={'nombre': 'Cotización', 'tipo': 'Cotizaciones'},
+    files={'archivo': cotizacion_file}
+)
+cotizacion_id = response.json()['id']
+
+# Step 2: Create project with document references
+project_data = {
+    'nombre': 'Nuevo Proyecto',
+    'periodo': 1,
+    'quorum_asamblea': 50,
+    'documentos_ids': [acta_id, cotizacion_id]  # Associate documents
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/proyectos/',
+    headers=headers,
+    json=project_data
+)
+project = response.json()
+```
+
+## File Storage
+
+Documents are stored in the `/media/documentos/` directory on the server. Full URLs are constructed using the `MEDIA_URL` setting and can be accessed directly with authentication.

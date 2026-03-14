@@ -1,0 +1,507 @@
+---
+title: 'Auditor (CPA) Guide'
+description: 'Complete guide for CPA auditors reviewing projects and expenses across communities in Auditoriapp'
+---
+
+## Overview
+
+As a CPA Auditor (CPA Revisor), you play a critical role in ensuring financial accountability and proper use of funds across all communities in Auditoriapp. This guide covers your review and approval workflows.
+
+## Your Responsibilities
+
+CPA Auditors are responsible for:
+
+- **Reviewing and approving projects** submitted by communities
+- **Validating expense reports** (rendiciones) for accuracy and compliance
+- **Issuing observations** when corrections are needed
+- **Rejecting non-compliant submissions**
+- **Monitoring financial execution** across all communities
+- **Ensuring proper documentation** for all transactions
+
+## Access & Permissions
+
+Your role (`cpa` or `CPA Revisor`) provides:
+
+- **Cross-community visibility**: View all communities' projects and expenses
+- **Approval authority**: Only CPAs can approve projects and rendiciones
+- **Observation powers**: Issue observations requiring corrections
+- **Status change control**: Manage project workflow transitions
+- **Financial oversight**: Access to complete financial data
+
+<Warning>
+You have elevated permissions across the entire platform. Exercise caution when reviewing and approving submissions.
+</Warning>
+
+## Understanding the Multi-Tenant System
+
+Auditoriapp uses logical multi-tenancy:
+
+- Each **Comunidad** (community) has isolated data
+- Communities cannot see each other's information
+- As a CPA, you can view **all communities** for oversight
+- Each project and expense is tied to a specific community
+- Budget periods are community-specific
+
+## Project Review Workflow
+
+### Understanding Project States
+
+Projects flow through these states:
+
+1. **Borrador** (Draft): Initial community creation
+2. **Revisión Interna** (Internal Review): Community internal validation
+3. **Revisión CPA** (CPA Review): **Your review stage**
+4. **Observaciones** (With Observations): Returned for corrections
+5. **Aprobado** (Approved): **You approved** - ready for execution
+6. **Ejecución** (In Execution): Project implementation
+7. **Cierre** (Closed): Project completed
+
+### Accessing Projects for Review
+
+<Steps>
+  <Step title="Navigate to Projects">
+    Click **Proyectos** in the main navigation to view all projects across communities.
+  </Step>
+  
+  <Step title="Filter by Status">
+    Use the status filter to show only projects in **Revisión CPA** status that require your review.
+  </Step>
+  
+  <Step title="Select a Project">
+    Click on a project to view full details and begin your review.
+  </Step>
+</Steps>
+
+### Reviewing a Project
+
+<Steps>
+  <Step title="Verify Basic Information">
+    Review the project fundamentals:
+    - **Nombre** and **Descripción**: Clear and specific
+    - **Fechas**: Realistic start and end dates
+    - **Presupuesto Total**: Reasonable and within period allocation
+    - **Comunidad**: Verify community identity
+    - **Periodo**: Confirm active period
+  </Step>
+  
+  <Step title="Review Strategic Content">
+    Assess the project formulation:
+    - **Objetivos**: Are objectives clear and measurable?
+    - **Justificación**: Is the need well-documented?
+    - **Beneficiarios Estimados**: Reasonable number of beneficiaries?
+  </Step>
+  
+  <Step title="Validate Governance Requirements">
+    Check compliance with governance:
+    - **Quorum Asamblea**: Sufficient attendance number
+    - **Firma Presidente**: President approval confirmed
+    - **Fecha Firma Presidente**: Approval date recorded
+  </Step>
+  
+  <Step title="Review Documentation">
+    Verify all required documents are present:
+    - **Acta de Asamblea**: Assembly minutes uploaded
+    - **Cotizaciones**: Multiple vendor quotes (usually 3)
+    - **Cotización Elegida**: Selected quote clearly marked
+    - **Document quality**: PDFs are clear and complete
+  </Step>
+  
+  <Step title="Check Budget Alignment">
+    Verify financial aspects:
+    - Budget within period allocation
+    - No duplicate projects
+    - Costs align with quotes
+    - Calculation accuracy
+  </Step>
+  
+  <Step title="Review Project History">
+    Check the status change history:
+    - Previous reviewers' comments
+    - Past observations and resolutions
+    - Timeline of submissions
+  </Step>
+</Steps>
+
+### Approving a Project
+
+If the project meets all requirements:
+
+<Steps>
+  <Step title="Click Change Status">
+    In the project details page, click the **Cambiar Estado** button.
+  </Step>
+  
+  <Step title="Select Approved Status">
+    Choose **Aprobado** from the status dropdown.
+  </Step>
+  
+  <Step title="Add Approval Comments">
+    Optionally add comments:
+    - Confirmation of approval
+    - Any conditions or notes
+    - Recommendations for execution
+  </Step>
+  
+  <Step title="Confirm Approval">
+    Click **Confirmar** to approve the project. The community can now begin execution.
+  </Step>
+</Steps>
+
+<Note>
+Only users with the `cpa` role can approve projects. This is enforced at the API level.
+</Note>
+
+### Issuing Observations
+
+When a project needs corrections:
+
+<Steps>
+  <Step title="Identify Issues">
+    Document all issues found during review:
+    - Missing or incomplete information
+    - Incorrect calculations
+    - Missing documents
+    - Governance non-compliance
+    - Budget issues
+  </Step>
+  
+  <Step title="Change Status to Observations">
+    Click **Cambiar Estado** and select **Observaciones**.
+  </Step>
+  
+  <Step title="Write Clear Observations">
+    In the comments field, provide detailed, actionable feedback:
+    
+    **Good observation example**:
+    ```
+    OBSERVACIONES:
+    1. Falta acta de asamblea - debe incluir acta firmada
+    2. Presupuesto ($5,000,000) excede el monto asignado del período ($4,500,000)
+    3. Justificación insuficiente - ampliar explicación de la necesidad
+    4. Cotizaciones: solo se adjuntan 2 cotizaciones, se requieren mínimo 3
+    ```
+    
+    **Poor observation example**:
+    ```
+    Revisar documentos
+    ```
+  </Step>
+  
+  <Step title="Submit Observations">
+    Click **Confirmar** to send the project back to the community with your observations.
+  </Step>
+</Steps>
+
+### Rejecting a Project
+
+For projects that should not proceed:
+
+<Note>
+Rejection is typically done by changing to "Observaciones" status rather than a separate "Rechazado" state. The community can then decide whether to correct or abandon the project.
+</Note>
+
+## Expense Review Workflow
+
+### Understanding Expense States
+
+Rendiciones (expense reports) have these states:
+
+- **Pendiente** (Pending): Awaiting your review
+- **Aprobado** (Approved): You validated the expense
+- **Observado** (With Observations): Requires corrections
+- **Rechazado** (Rejected): Not approved
+- **Pagado** (Paid): Payment processed (after approval)
+
+### Accessing Expenses for Review
+
+<Steps>
+  <Step title="Navigate to Rendiciones">
+    Click **Rendiciones** in the main menu or access from within a project.
+  </Step>
+  
+  <Step title="Filter by Status">
+    Filter to show **Pendiente** status to see expenses awaiting review.
+  </Step>
+  
+  <Step title="Filter by Community (Optional)">
+    If reviewing a specific community, apply the community filter.
+  </Step>
+</Steps>
+
+### Reviewing an Expense Report
+
+<Steps>
+  <Step title="Verify Basic Information">
+    Check the expense fundamentals:
+    - **Proyecto**: Confirm project exists and is approved
+    - **Monto Rendido**: Amount is reasonable
+    - **Número Documento**: Invoice/receipt number present
+    - **Fecha Rendición**: Date is logical
+    - **Descripción**: Clear description of expense
+  </Step>
+  
+  <Step title="Review Supporting Documents">
+    Examine uploaded documentation:
+    - Invoice or receipt is attached
+    - Document is legible and complete
+    - Amount matches the rendición
+    - Vendor information is clear
+    - Date on document matches report date
+  </Step>
+  
+  <Step title="Validate Against Project Budget">
+    Check budget compliance:
+    - Expense is within project budget
+    - Sum of all rendiciones doesn't exceed project total
+    - Expense aligns with project purpose
+  </Step>
+  
+  <Step title="Verify Eligibility">
+    Ensure the expense is appropriate:
+    - Relates to approved project activities
+    - Vendor/supplier is legitimate
+    - No duplicate expenses
+    - Complies with funding rules
+  </Step>
+</Steps>
+
+### Approving an Expense
+
+<Steps>
+  <Step title="Access Review Action">
+    In the rendición details or list view, click **Revisar**.
+  </Step>
+  
+  <Step title="Select Approved Status">
+    Choose **Aprobado** from the status options.
+  </Step>
+  
+  <Step title="Add Review Comments (Optional)">
+    Provide any notes about the approval:
+    - Confirmation
+    - Conditions
+    - Notes for payment processing
+  </Step>
+  
+  <Step title="Submit Approval">
+    Click **Confirmar** to approve the expense. The system records:
+    - Your user ID as reviewer
+    - Timestamp of review
+    - New status
+  </Step>
+</Steps>
+
+### Issuing Observations on Expenses
+
+When an expense needs clarification or correction:
+
+<Steps>
+  <Step title="Click Review">
+    Access the review interface for the rendición.
+  </Step>
+  
+  <Step title="Select Observado Status">
+    Choose **Observado** (With Observations).
+  </Step>
+  
+  <Step title="Write Clear Observations">
+    Provide specific, actionable feedback:
+    
+    **Good observation examples**:
+    ```
+    - Factura ilegible, favor resubir documento escaneado en alta calidad
+    - Monto no coincide: factura indica $150,000 pero rendición declara $180,000
+    - Falta información del proveedor en la factura
+    - Gasto no relacionado con objetivos del proyecto aprobado
+    ```
+  </Step>
+  
+  <Step title="Submit Observations">
+    Click **Confirmar**. The community will be notified to review and address your comments.
+  </Step>
+</Steps>
+
+### Rejecting an Expense
+
+For expenses that should not be approved:
+
+<Steps>
+  <Step title="Access Review">
+    Click **Revisar** on the rendición.
+  </Step>
+  
+  <Step title="Select Rejected Status">
+    Choose **Rechazado**.
+  </Step>
+  
+  <Step title="Provide Rejection Reason">
+    Explain clearly why the expense is rejected:
+    - Non-compliance with rules
+    - Fraudulent documentation
+    - Duplicate submission
+    - Outside project scope
+  </Step>
+  
+  <Step title="Confirm Rejection">
+    Submit the rejection. This expense will not be reimbursed.
+  </Step>
+</Steps>
+
+<Warning>
+Rejections are permanent for that specific rendición. The community must submit a new, corrected rendición if appropriate.
+</Warning>
+
+## Dashboard & Monitoring
+
+### CPA Dashboard Overview
+
+Your dashboard provides cross-community oversight:
+
+- **Total projects** across all communities
+- **Projects by status** (pending review, approved, etc.)
+- **Expense statistics** (pending, approved, observed)
+- **Budget execution** across communities
+- **Alert indicators** for items requiring attention
+
+### Key Metrics to Monitor
+
+- **Rendiciones Pendientes**: Expenses awaiting your review
+- **Rendiciones Observadas**: Expenses with unresolved observations
+- **Proyectos en Revisión CPA**: Projects waiting for your approval
+- **Proyectos Atrasados**: Projects past deadline without closure
+- **Budget overruns**: Projects exceeding allocated budgets
+
+## Review Best Practices
+
+### Documentation Standards
+
+- **Always verify document authenticity** - look for signs of tampering
+- **Check document completeness** - all required fields present
+- **Ensure legibility** - text and numbers must be clear
+- **Verify dates** - logical sequence of events
+- **Cross-reference** - amounts match across documents
+
+### Communication Guidelines
+
+- **Be specific** in observations - avoid vague comments
+- **Be constructive** - help communities improve
+- **Be timely** - review submissions promptly
+- **Be consistent** - apply same standards across communities
+- **Document everything** - use comment fields thoroughly
+
+### Approval Principles
+
+- **Verify before approving** - don't rush reviews
+- **Request clarification** when in doubt
+- **Maintain independence** - objective review only
+- **Follow procedures** - comply with audit standards
+- **Track patterns** - identify recurring issues
+
+### Risk Management
+
+- **Flag unusual patterns**: Multiple similar expenses, round numbers
+- **Verify vendor diversity**: Not all expenses to same vendor
+- **Check timeline logic**: Expense dates align with project timeline
+- **Monitor budget consumption**: Sudden spikes in spending
+- **Review related projects**: Potential splitting of expenses
+
+## Advanced Features
+
+### Viewing Project History
+
+To understand a project's complete journey:
+
+1. Open project details
+2. Scroll to **Historial de Estados** section
+3. Review all status changes with:
+   - Previous state
+   - New state
+   - User who made the change
+   - Timestamp
+   - Comments provided
+
+### Filtering and Searching
+
+Efficient review workflows:
+
+- **Filter by community**: Focus on specific community
+- **Filter by status**: See only items needing review
+- **Filter by date range**: Review within timeframes
+- **Search by project name**: Find specific projects
+- **Sort by date**: Prioritize oldest submissions
+
+### Bulk Review Considerations
+
+<Note>
+The current system requires individual review of each project and expense. Plan your review sessions accordingly.
+</Note>
+
+For efficient bulk reviews:
+
+1. **Group by community**: Review all items from one community together
+2. **Group by type**: Review all projects, then all expenses
+3. **Prioritize**: Handle urgent or time-sensitive items first
+4. **Set schedules**: Regular review times (e.g., every Tuesday and Friday)
+
+## Troubleshooting
+
+### Cannot Approve Project
+
+**Issue**: Approval button disabled or error when approving
+
+**Solution**:
+- Verify project is in "Revisión CPA" status
+- Confirm you're logged in with CPA role
+- Check that project hasn't already been approved
+- Refresh the page and try again
+
+### Missing Documents
+
+**Issue**: Project shows documents uploaded but can't view them
+
+**Solution**:
+- Check your browser allows pop-ups from the domain
+- Verify document IDs are present in project data
+- Contact system administrator if documents are truly missing
+- Request community to re-upload if necessary
+
+### Status Change Failed
+
+**Issue**: Error message when changing project or expense status
+
+**Solution**:
+- Verify you have CPA permissions
+- Check the current status allows the transition you're attempting
+- Ensure you've filled required comment fields
+- Check network connection
+
+### Cannot See All Communities
+
+**Issue**: Only seeing one or limited communities
+
+**Solution**:
+- Verify your user role is set to `cpa` or `CPA Revisor`
+- Confirm you're not filtering by a specific community
+- Check with administrator that your user is not assigned to a specific community
+- Re-login to refresh permissions
+
+## Reporting Issues
+
+If you discover:
+
+- **Financial irregularities**: Document thoroughly and escalate immediately
+- **System bugs**: Report to technical support with screenshots
+- **Recurring community issues**: Provide feedback for training
+- **Process improvements**: Suggest enhancements to workflows
+
+## Compliance & Audit Trail
+
+The system maintains complete audit trails:
+
+- **All status changes** are logged with user and timestamp
+- **Document uploads** are tracked
+- **Review actions** are permanently recorded
+- **Comments and observations** are preserved
+- **Financial transactions** have complete history
+
+This ensures accountability and enables future audits.

@@ -1,0 +1,653 @@
+---
+title: 'Expense Reporting'
+description: 'Complete guide to reporting and managing project expenses (rendiciones) in Auditoriapp'
+---
+
+## Overview
+
+Expense reporting (rendiciones) is how you document and justify project spending in Auditoriapp. Each rendición represents a specific expense that requires approval before reimbursement or payment.
+
+This guide covers the complete expense reporting workflow from creation through approval and payment.
+
+## Understanding Rendiciones
+
+A rendición (expense report) is:
+
+- A **financial justification** for money spent on a project
+- Supported by **documentation** (invoice, receipt, bill)
+- Subject to **CPA review and approval**
+- Tracked against **project budget**
+- Part of the **audit trail** for accountability
+
+### Key Rendición Components
+
+- **Project association**: Which project the expense relates to
+- **Amount** (Monto Rendido): How much was spent
+- **Document number** (Número Documento): Invoice or receipt number
+- **Description**: What was purchased or paid for
+- **Date** (Fecha Rendición): When the expense occurred
+- **Supporting documents**: Uploaded invoice/receipt PDFs
+- **Review status**: Current approval state
+
+## Prerequisites for Reporting Expenses
+
+Before creating a rendición, ensure:
+
+- ✅ **Project exists and is approved**: Project status is "Aprobado" or "Ejecución"
+- ✅ **Expense is legitimate**: Purchase was made for project purposes
+- ✅ **Documentation is ready**: You have invoice or receipt PDF
+- ✅ **Within budget**: Expense doesn't exceed remaining project budget
+- ✅ **Proper role**: You have authorization to report expenses
+
+<Warning>
+Only report expenses for approved projects. Expenses for projects in draft or review status will not be approved.
+</Warning>
+
+## Expense Reporting Workflow
+
+### Method 1: Report from Project Details (Recommended)
+
+This is the most common and straightforward method:
+
+<Steps>
+  <Step title="Navigate to Project">
+    From the main menu, click **Proyectos** to view your projects list.
+  </Step>
+  
+  <Step title="Open Project Details">
+    Click on the specific project for which you're reporting an expense.
+    
+    Verify:
+    - Project status is "Aprobado" or "Ejecución"
+    - Project has remaining budget
+    - This is the correct project
+  </Step>
+  
+  <Step title="Access Rendiciones Section">
+    Scroll down to the **Rendiciones** section in the project details page.
+    
+    This section shows:
+    - Existing rendiciones for this project
+    - Their status (Pendiente, Aprobado, etc.)
+    - Total rendered amount
+    - Create rendición button
+  </Step>
+  
+  <Step title="Click Create Rendición">
+    Click the **Crear Rendición** button to open the expense reporting form.
+  </Step>
+</Steps>
+
+### Method 2: Report from Rendiciones Page
+
+Alternatively, access from the main rendiciones section:
+
+<Steps>
+  <Step title="Navigate to Rendiciones">
+    Click **Rendiciones** in the main navigation menu.
+  </Step>
+  
+  <Step title="Click Create">
+    Click the **Nueva Rendición** or **Crear** button.
+  </Step>
+  
+  <Step title="Select Project">
+    From the project dropdown, select the project this expense belongs to.
+  </Step>
+</Steps>
+
+## Creating an Expense Report
+
+### Step 1: Upload Supporting Document
+
+Always upload the invoice or receipt first:
+
+<Steps>
+  <Step title="Prepare Your Document">
+    Ensure you have:
+    - Invoice or receipt in PDF format
+    - Document is clear and legible
+    - All pages included if multi-page
+    - File size under 10MB
+  </Step>
+  
+  <Step title="Click Document Upload">
+    In the rendición form, click **Seleccionar Documento** or the file upload button.
+  </Step>
+  
+  <Step title="Select File">
+    Choose your PDF file from your computer.
+  </Step>
+  
+  <Step title="Wait for Upload">
+    The system uploads the file immediately:
+    - You'll see a progress indicator
+    - Upload completes with confirmation
+    - Filename appears in the form
+    - Document ID is assigned
+    
+    <Note>
+    The upload happens before you submit the form. Don't navigate away until upload completes.
+    </Note>
+  </Step>
+</Steps>
+
+### Step 2: Enter Expense Details
+
+Complete all required fields:
+
+<Steps>
+  <Step title="Monto Rendido (Amount)">
+    Enter the exact amount from your invoice/receipt:
+    
+    **Format**: Enter as whole number without currency symbol
+    - Example: For $150,000, enter: `150000`
+    - Do not include periods or commas
+    - Do not include currency symbol ($)
+    
+    **Important**:
+    - Must match the amount on your document
+    - Must not exceed remaining project budget
+    - Include all taxes and fees if shown on invoice
+  </Step>
+  
+  <Step title="Número Documento (Document Number)">
+    Enter the invoice or receipt number:
+    
+    **Where to find it**:
+    - On invoice: usually top right, labeled "Factura N°" or "Invoice No."
+    - On receipt: may be labeled "Boleta N°" or receipt number
+    - On bill: reference or bill number
+    
+    **Examples**:
+    - `FAC-2024-001234`
+    - `001245678`
+    - `REC-789456`
+    
+    **Best practices**:
+    - Copy exactly as shown on document
+    - Include all prefixes and dashes
+    - Double-check for accuracy
+  </Step>
+  
+  <Step title="Descripción (Description)">
+    Write a clear description of the expense:
+    
+    **Good examples**:
+    ```
+    Compra de cemento y materiales de construcción para fundación 
+    según factura Ferretería Central
+    ```
+    
+    ```
+    Pago de mano de obra - instalación de ventanas y puertas - 
+    Maestro Juan Pérez
+    ```
+    
+    ```
+    Adquisición de pintura interior y exterior, rodillos y brochas 
+    para terminaciones
+    ```
+    
+    **Include**:
+    - What was purchased or paid for
+    - Purpose (which project component)
+    - Vendor/supplier name
+    - Any relevant details for clarity
+    
+    **Avoid vague descriptions**:
+    - ❌ "Materiales"
+    - ❌ "Pago"
+    - ❌ "Compra"
+  </Step>
+  
+  <Step title="Fecha Rendición (Expense Date)">
+    Select the date of the expense:
+    
+    **Should be**:
+    - Date on the invoice or receipt
+    - Within the project timeline
+    - Not in the future
+    - Within the active period dates
+    
+    **Format**: Use the date picker (YYYY-MM-DD)
+    
+    <Note>
+    If invoice date differs from payment date, use the invoice date.
+    </Note>
+  </Step>
+</Steps>
+
+### Step 3: Review and Submit
+
+<Steps>
+  <Step title="Verify All Information">
+    Before submitting, double-check:
+    
+    - [ ] Document uploaded successfully (filename visible)
+    - [ ] Amount matches invoice exactly
+    - [ ] Document number copied correctly
+    - [ ] Description is clear and complete
+    - [ ] Date is correct
+    - [ ] Project selected is correct (if applicable)
+  </Step>
+  
+  <Step title="Submit the Rendición">
+    Click **Crear Rendición** or **Guardar** button.
+    
+    The system will:
+    1. Validate all required fields
+    2. Check budget availability
+    3. Associate uploaded document
+    4. Create rendición with status "Pendiente"
+    5. Update project's total rendered amount
+    6. Show confirmation message
+  </Step>
+  
+  <Step title="Confirm Creation">
+    You'll see a success message confirming the rendición was created.
+    
+    The expense now appears:
+    - In the project's rendiciones list
+    - In the main rendiciones page
+    - With status **Pendiente** (awaiting CPA review)
+  </Step>
+</Steps>
+
+## After Submission
+
+### Initial Status: Pendiente
+
+Your newly created rendición has status **Pendiente**:
+
+- Waiting for CPA reviewer assignment
+- Visible to CPA auditors
+- Cannot be edited
+- Counted in project's "total_rendido" amount
+
+### What Happens Next
+
+The CPA reviewer will:
+
+1. **Receive notification** of pending rendición
+2. **Review documentation** and details
+3. **Verify amounts** against project budget
+4. **Check compliance** with rules and procedures
+5. **Make a decision**: Approve, Observe, or Reject
+
+### Possible Outcomes
+
+#### Outcome 1: Approved (Aprobado)
+
+✅ **Best outcome**:
+- CPA validated your expense
+- Status changes to "Aprobado"
+- Expense is authorized for payment
+- You may receive reimbursement
+
+**What you see**:
+- Status badge shows "Aprobado" (green)
+- Reviewer name and date recorded
+- Optional approval comments
+
+**Next steps**:
+- Wait for payment processing
+- No action required from you
+- Expense is complete
+
+#### Outcome 2: With Observations (Observado)
+
+⚠️ **Needs correction**:
+- CPA found issues requiring clarification or correction
+- Status changes to "Observado"
+- Detailed observation comments provided
+- You must address the observations
+
+**What you see**:
+- Status badge shows "Observado" (yellow/orange)
+- Observation text in the record
+- Reviewer name and review date
+
+**Next steps**:
+1. Read the observations carefully
+2. Understand what corrections are needed
+3. Prepare corrected documentation
+4. Create a new rendición with corrections
+5. Reference original rendición in description
+
+<Note>
+You cannot edit an existing rendición. If observations are issued, create a new, corrected rendición.
+</Note>
+
+#### Outcome 3: Rejected (Rechazado)
+
+❌ **Not approved**:
+- CPA determined expense is not valid
+- Status changes to "Rechazado"
+- Will not be paid or reimbursed
+- Reason provided in comments
+
+**Common rejection reasons**:
+- Expense not related to project
+- Duplicate submission
+- Fraudulent documentation
+- Outside project scope
+- Exceeds budget
+
+**What you see**:
+- Status badge shows "Rechazado" (red)
+- Rejection reason in observations
+- Reviewer and date recorded
+
+**Next steps**:
+- Review rejection reason
+- If legitimate dispute, contact CPA
+- If expense was inappropriate, no further action
+- Do not resubmit unless instructed
+
+#### Outcome 4: Paid (Pagado)
+
+✅ **Final status**:
+- After approval, payment was processed
+- Status changes to "Pagado"
+- Reimbursement completed or vendor paid
+- Expense cycle is complete
+
+**What you see**:
+- Status badge shows "Pagado" (blue/green)
+- Payment confirmation
+- Possibly payment voucher attached
+
+## Viewing Your Rendiciones
+
+### From Project Details
+
+<Steps>
+  <Step title="Open Project">
+    Navigate to the project and click to view details.
+  </Step>
+  
+  <Step title="Scroll to Rendiciones Section">
+    Find the **Rendiciones** section showing all expenses for this project.
+  </Step>
+  
+  <Step title="View Details">
+    Each rendición shows:
+    - Monto rendido (amount)
+    - Número documento (document number)
+    - Descripción (description)
+    - Estado (status badge)
+    - Fecha rendición (expense date)
+    - Optional: Review comments/observations
+  </Step>
+</Steps>
+
+### From Rendiciones Page
+
+<Steps>
+  <Step title="Navigate to Rendiciones">
+    Click **Rendiciones** in the main menu.
+  </Step>
+  
+  <Step title="View All Expenses">
+    See a table of all rendiciones for your community:
+    - All projects combined
+    - Filterable by status, project, date
+    - Sortable by various columns
+  </Step>
+  
+  <Step title="Filter and Search">
+    Use filters to find specific rendiciones:
+    - **By project**: Select project from dropdown
+    - **By status**: Show only Pendiente, Aprobado, etc.
+    - **By date range**: Filter by expense dates
+  </Step>
+</Steps>
+
+## Budget Tracking
+
+### Understanding Budget Calculations
+
+For each project:
+
+- **Presupuesto Total**: Original approved project budget
+- **Total Rendido**: Sum of all rendiciones (all statuses)
+- **Presupuesto Disponible**: Total - Total Rendido
+
+<Warning>
+Total Rendido includes rendiciones in ALL statuses (Pendiente, Aprobado, Observado, etc.). Don't over-commit your budget.
+</Warning>
+
+### Monitoring Your Budget
+
+**In Project Details**:
+- View presupuesto total
+- See total rendido
+- Calculate remaining budget
+
+**In Dashboard**:
+- Total rendered across all projects
+- Total approved amounts
+- Budget execution percentage
+
+**Best Practice**: Keep a spreadsheet tracking:
+- Planned expenses
+- Submitted rendiciones
+- Approved amounts
+- Remaining budget
+
+## Document Requirements
+
+### What Makes a Valid Invoice/Receipt
+
+CPA auditors look for:
+
+✅ **Vendor Information**:
+- Company or individual name
+- Tax ID (RUT) if applicable
+- Address
+- Contact information
+
+✅ **Document Details**:
+- Invoice/receipt number
+- Issue date
+- Due date (if applicable)
+
+✅ **Itemized Breakdown**:
+- Description of goods/services
+- Quantities
+- Unit prices
+- Subtotals
+- Taxes (IVA)
+- Total amount
+
+✅ **Signatures/Stamps**:
+- Vendor signature or stamp
+- Official receipt stamp if required
+
+### Document Preparation Tips
+
+**Scanning**:
+- Use 300 DPI or higher
+- Scan in color if possible
+- Include all pages
+- Ensure all text is legible
+- No shadows or skewed pages
+
+**PDF Creation**:
+- Save as PDF (not image files)
+- Compress if over 10MB
+- Use descriptive filename
+- Verify PDF opens correctly
+
+**Organization**:
+- One PDF per rendición
+- If multiple pages, combine into single PDF
+- Don't include unrelated documents
+
+## Common Scenarios
+
+### Scenario 1: Multiple Small Expenses
+
+**Question**: Can I combine multiple small purchases into one rendición?
+
+**Answer**: No, create separate rendiciones for each invoice/receipt.
+
+**Reason**: Each expense needs individual documentation and approval.
+
+**Solution**:
+- Submit one rendición per invoice
+- Even for small amounts
+- Each with its own documentation
+
+### Scenario 2: Partial Payment
+
+**Question**: I made a partial payment on a large invoice. How do I report it?
+
+**Answer**: Report only the amount you actually paid.
+
+**Steps**:
+1. Create rendición for the partial amount
+2. In description, note it's a partial payment (e.g., "Pago 1 de 3")
+3. Upload the full invoice
+4. Create additional rendiciones for subsequent payments
+5. Reference the same invoice number each time
+
+### Scenario 3: Invoice in Foreign Currency
+
+**Question**: My invoice is in USD. What amount do I report?
+
+**Answer**: Convert to Chilean pesos using official exchange rate.
+
+**Steps**:
+1. Find official exchange rate for invoice date
+2. Calculate CLP amount
+3. Report in CLP
+4. In description, note: "USD $500 @ $900 = $450,000 CLP"
+5. Upload original invoice
+6. Consider attaching exchange rate documentation
+
+### Scenario 4: Lost Receipt
+
+**Question**: I lost the receipt. Can I still report the expense?
+
+**Answer**: Very difficult without documentation.
+
+**Options**:
+1. **Best**: Request duplicate from vendor
+2. **Alternative**: Vendor statement showing purchase
+3. **Last resort**: Sworn declaration with explanation
+
+<Warning>
+CPA will likely reject expenses without proper documentation. Always keep receipts.
+</Warning>
+
+### Scenario 5: Reimbursement vs Direct Payment
+
+**Question**: Does it matter if I paid personally or if vendor was paid directly?
+
+**Answer**: Process is the same; note it in description.
+
+**Personal Reimbursement**:
+- Description: "Reembolso - Compra de materiales - Juan Pérez"
+- You'll receive payment after approval
+
+**Direct Vendor Payment**:
+- Description: "Pago directo a proveedor - Ferretería XYZ"
+- Vendor receives payment after approval
+
+## Best Practices
+
+### Timing
+
+- **Report promptly**: Submit within days of expense
+- **Don't batch**: Submit regularly, not all at end
+- **Follow project timeline**: Expenses should align with project schedule
+- **Before deadlines**: Don't wait until period closes
+
+### Documentation
+
+- **Keep originals**: Maintain physical copies
+- **High quality**: Clear, legible scans
+- **Complete**: All pages included
+- **Organized**: File systematically
+
+### Accuracy
+
+- **Double-check amounts**: Must match invoice exactly
+- **Verify document numbers**: Copy precisely
+- **Clear descriptions**: Be specific and detailed
+- **Correct dates**: Use invoice date, not payment date
+
+### Communication
+
+- **Respond to observations**: Address CPA comments quickly
+- **Ask questions**: If unsure, ask before submitting
+- **Keep records**: Note submission dates and statuses
+- **Track progress**: Monitor approval status
+
+## Troubleshooting
+
+### Upload Failed
+
+**Symptoms**: Document won't upload or shows error
+
+**Solutions**:
+- Check file is PDF format
+- Reduce file size (compress PDF)
+- Check internet connection stability
+- Try different browser
+- Verify file isn't corrupted
+
+### Budget Exceeded Error
+
+**Symptoms**: "Presupuesto excedido" when creating rendición
+
+**Solutions**:
+- Check project's total rendido vs presupuesto total
+- Account for pending rendiciones
+- Reduce expense amount if possible
+- Split expense across multiple projects if appropriate
+- Request budget increase from administrator
+
+### Rendición Not Appearing
+
+**Symptoms**: Created rendición doesn't show in list
+
+**Solutions**:
+- Refresh the page
+- Check you're viewing correct project
+- Verify filters aren't hiding it
+- Check for confirmation message at submission
+- Look in main Rendiciones page, not just project view
+
+### Cannot See Status Update
+
+**Symptoms**: Status still shows Pendiente after CPA reviewed
+
+**Solutions**:
+- Refresh the page
+- Clear browser cache
+- Check from Rendiciones page (not cached project view)
+- Wait a few minutes for system update
+
+### Observation Not Clear
+
+**Symptoms**: Don't understand CPA's observation comments
+
+**Solutions**:
+- Read observation carefully and completely
+- Check if specific fields or documents mentioned
+- Contact CPA reviewer directly for clarification
+- Review expense against documentation requirements
+- Ask community administrator for help interpreting
+
+## Getting Help
+
+If you encounter issues:
+
+1. **Check this guide** for common scenarios
+2. **Review CPA observations** carefully
+3. **Contact your community administrator**
+4. **Reach out to CPA reviewer** for approval questions
+5. **Contact technical support** for system issues

@@ -1,0 +1,214 @@
+---
+title: 'Multi-Tenancy Architecture'
+description: 'Learn how Auditoriapp implements secure multi-tenant data isolation using Django and PostgreSQL'
+icon: 'building'
+---
+
+## Overview
+
+Auditoriapp is built as a **multi-tenant SaaS platform** where each community ("Comunidad") operates as an independent tenant with complete data isolation. The platform ensures that users can only access data belonging to their assigned community.
+
+## Architecture
+
+### Tenant Model
+
+The core tenant entity is the `Comunidad` model, which serves as the root entity for all community-specific data:
+
+```python
+class Comunidad(models.Model):
+    nombre = models.CharField(max_length=255)
+    activa = models.BooleanField(default=True)
+    creada_en = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey('usuarios.CustomUser', on_delete=models.CASCADE, 
+                                null=True, blank=True, related_name='comunidades')
+
+    def __str__(self):
+        return self.nombre
+```
+
+### User-Tenant Association
+
+Every user in the system is associated with a single community through the `CustomUser` model:
+
+```python
+class CustomUser(AbstractUser):
+    nombre = models.CharField(max_length=100, blank=True)
+    comunidad = models.ForeignKey('comunidades.Comunidad', 
+                                   on_delete=models.CASCADE, 
+                                   null=True, blank=True)
+    rol = models.CharField(max_length=20, choices=[
+        ('admin', 'Admin'),
+        ('auditor', 'Auditor'),
+        ('usuario', 'Usuario'),
+        ('directorio', 'Directorio Comunidad'),
+        ('presidente', 'Presidente Comunidad'),
+        ('ito', 'ITO / Responsable'),
+        ('cpa', 'CPA Revisor')
+    ], default='usuario')
+    telefono = models.CharField(max_length=20, blank=True)
+    es_auditor = models.BooleanField(default=False)
+```
+
+## Data Isolation Implementation
+
+### Automatic Queryset Filtering
+
+All ViewSets implement tenant-based filtering to ensure users only see their community's data:
+
+```python
+class ProyectoViewSet(viewsets.ModelViewSet):
+    serializer_class = ProyectoSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return Proyecto.objects.filter(comunidad=user.comunidad)
+        return Proyecto.objects.none()
+```
+
+<Info>
+**Security Best Practice**: The `get_queryset()` method returns `none()` if the user has no community assigned, preventing unauthorized data access.
+</Info>
+
+### Foreign Key Relationships
+
+All tenant-specific models include a foreign key to `Comunidad`:
+
+```python
+# Projects belong to a community
+class Proyecto(models.Model):
+    comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE)
+    periodo = models.ForeignKey('periodos.Periodo', on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=255)
+    # ... other fields
+
+# Financial movements belong to a community
+class Movimiento(models.Model):
+    comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE)
+    periodo = models.ForeignKey('periodos.Periodo', on_delete=models.CASCADE)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    # ... other fields
+
+# Members belong to a community
+class Socio(models.Model):
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
+    rut = models.CharField(max_length=12, unique=True)
+    comunidad = models.ForeignKey('comunidades.Comunidad', 
+                                   on_delete=models.CASCADE, 
+                                   related_name='socios')
+```
+
+## Tenant Scoping in Action
+
+### Example: Rendiciones (Expense Reports)
+
+When fetching expense reports, the system automatically filters by the user's community:
+
+```python
+class RendicionViewSet(viewsets.ModelViewSet):
+    serializer_class = RendicionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['proyecto', 'estado']
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return Rendicion.objects.filter(proyecto__comunidad=user.comunidad)
+        return Rendicion.objects.none()
+    permission_classes = [IsAuthenticated]
+```
+
+This ensures that:
+- Users from Community A cannot see rendiciones from Community B
+- Filtering happens at the database level for performance
+- No additional middleware or decorators are needed
+
+## Authentication Context
+
+### JWT Token Payload
+
+The JWT token includes community information for seamless tenant identification:
+
+```python
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        data['user'] = {
+            'id': str(self.user.id),
+            'username': self.user.username,
+            'nombre': self.user.nombre,
+            'email': self.user.email,
+            'rol': self.user.rol,
+            'comunidad': {
+                'id': str(self.user.comunidad.id) if self.user.comunidad else None,
+                'nombre': self.user.comunidad.nombre if self.user.comunidad else None
+            } if self.user.comunidad else None
+        }
+        
+        return data
+```
+
+## Benefits of This Approach
+
+<CardGroup cols={2}>
+  <Card title="Data Security" icon="shield-check">
+    Complete isolation prevents cross-tenant data leaks
+  </Card>
+  <Card title="Performance" icon="gauge-high">
+    Database-level filtering ensures efficient queries
+  </Card>
+  <Card title="Simplicity" icon="sparkles">
+    Developers don't need to remember to add filters
+  </Card>
+  <Card title="Scalability" icon="arrow-up-right-dots">
+    Single database supports unlimited communities
+  </Card>
+</CardGroup>
+
+## Database Configuration
+
+Auditoriapp uses Django's ORM with support for multiple database backends:
+
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+```
+
+<Note>
+For production deployments, we recommend using PostgreSQL with proper indexing on the `comunidad_id` foreign key columns.
+</Note>
+
+## Best Practices
+
+<Steps>
+  <Step title="Always use get_queryset()">
+    Override `get_queryset()` in every ViewSet to apply tenant filtering automatically
+  </Step>
+  <Step title="Validate tenant on create">
+    When creating new records, ensure the community is set from the authenticated user
+  </Step>
+  <Step title="Test cross-tenant access">
+    Write integration tests that verify users cannot access data from other communities
+  </Step>
+  <Step title="Monitor query patterns">
+    Use Django Debug Toolbar or similar tools to ensure queries include tenant filters
+  </Step>
+</Steps>
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Role-Based Access" icon="user-shield" href="/features/role-based-access">
+    Learn how permissions work within each tenant
+  </Card>
+  <Card title="Project Management" icon="folder-tree" href="/features/project-management">
+    Understand how projects are scoped to communities
+  </Card>
+</CardGroup>

@@ -1,0 +1,417 @@
+---
+title: 'Communities'
+description: 'Endpoints for managing communities, councils, and members'
+---
+
+## Communities
+
+### List Communities
+
+<api method="GET" endpoint="/api/comunidades/comunidades/" auth="bearer" />
+
+Retrieve a list of all communities.
+
+**Authentication Required:** Yes
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Comunidad Central",
+    "activa": true,
+    "creada_en": "2024-01-15T10:30:00Z",
+    "usuario": "550e8400-e29b-41d4-a716-446655440000"
+  },
+  {
+    "id": 2,
+    "nombre": "Comunidad Norte",
+    "activa": true,
+    "creada_en": "2024-02-20T14:20:00Z",
+    "usuario": "660e8400-e29b-41d4-a716-446655440001"
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Community unique identifier
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Name of the community
+</ResponseField>
+
+<ResponseField name="activa" type="boolean">
+  Whether the community is active
+</ResponseField>
+
+<ResponseField name="creada_en" type="string">
+  ISO 8601 timestamp of creation
+</ResponseField>
+
+<ResponseField name="usuario" type="string">
+  ID of the user who created/manages the community
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/comunidades/comunidades/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get(
+    'https://api.auditoriapp.com/api/comunidades/comunidades/',
+    headers=headers
+)
+comunidades = response.json()
+```
+</CodeGroup>
+
+---
+
+### Create Community
+
+<api method="POST" endpoint="/api/comunidades/comunidades/" auth="bearer" />
+
+Create a new community.
+
+**Authentication Required:** Yes
+
+<ParamField body="nombre" type="string" required>
+  Name of the community
+</ParamField>
+
+<ParamField body="activa" type="boolean" default="true">
+  Whether the community is active
+</ParamField>
+
+<ParamField body="usuario" type="string">
+  User ID (UUID) to associate with the community
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 3,
+  "nombre": "Nueva Comunidad",
+  "activa": true,
+  "creada_en": "2024-03-14T16:45:00Z",
+  "usuario": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/comunidades/comunidades/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Nueva Comunidad",
+    "activa": true
+  }'
+```
+</CodeGroup>
+
+---
+
+### Get Community Details
+
+<api method="GET" endpoint="/api/comunidades/comunidades/{id}/" auth="bearer" />
+
+Retrieve details of a specific community.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Community ID
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 1,
+  "nombre": "Comunidad Central",
+  "activa": true,
+  "creada_en": "2024-01-15T10:30:00Z",
+  "usuario": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+</ResponseExample>
+
+---
+
+### Update Community
+
+<api method="PUT" endpoint="/api/comunidades/comunidades/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/comunidades/comunidades/{id}/" auth="bearer" />
+
+Update a community (PUT for full update, PATCH for partial update).
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Community ID
+</ParamField>
+
+<ParamField body="nombre" type="string">
+  Name of the community
+</ParamField>
+
+<ParamField body="activa" type="boolean">
+  Whether the community is active
+</ParamField>
+
+---
+
+### Delete Community
+
+<api method="DELETE" endpoint="/api/comunidades/comunidades/{id}/" auth="bearer" />
+
+Delete a community.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Community ID
+</ParamField>
+
+---
+
+## Councils (Consejos)
+
+### List Councils
+
+<api method="GET" endpoint="/api/comunidades/consejos/" auth="bearer" />
+
+Retrieve a list of all councils.
+
+**Authentication Required:** Yes
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "comunidad": 1,
+    "nombre": "Consejo Directivo"
+  },
+  {
+    "id": 2,
+    "comunidad": 1,
+    "nombre": "Consejo de Administración"
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Council unique identifier
+</ResponseField>
+
+<ResponseField name="comunidad" type="integer">
+  ID of the associated community
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Name of the council
+</ResponseField>
+
+---
+
+### Create Council
+
+<api method="POST" endpoint="/api/comunidades/consejos/" auth="bearer" />
+
+Create a new council within a community.
+
+**Authentication Required:** Yes
+
+<ParamField body="comunidad" type="integer" required>
+  Community ID
+</ParamField>
+
+<ParamField body="nombre" type="string" required>
+  Name of the council
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 3,
+  "comunidad": 1,
+  "nombre": "Nuevo Consejo"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/comunidades/consejos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "comunidad": 1,
+    "nombre": "Nuevo Consejo"
+  }'
+```
+</CodeGroup>
+
+---
+
+## Members (Socios)
+
+### List Members
+
+<api method="GET" endpoint="/api/comunidades/socios/" auth="bearer" />
+
+Retrieve members of the authenticated user's community.
+
+**Authentication Required:** Yes
+
+**Filtering:** Results are automatically filtered by the authenticated user's community.
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "comunidad": 1,
+    "consejo": 1,
+    "nombre": "Juan Pérez",
+    "rol": "Presidente"
+  },
+  {
+    "id": 2,
+    "comunidad": 1,
+    "consejo": 1,
+    "nombre": "María González",
+    "rol": "Secretaria"
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Member unique identifier
+</ResponseField>
+
+<ResponseField name="comunidad" type="integer">
+  ID of the associated community
+</ResponseField>
+
+<ResponseField name="consejo" type="integer">
+  ID of the associated council (nullable)
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Full name of the member
+</ResponseField>
+
+<ResponseField name="rol" type="string">
+  Role of the member within the community
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/comunidades/socios/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get(
+    'https://api.auditoriapp.com/api/comunidades/socios/',
+    headers=headers
+)
+socios = response.json()
+```
+</CodeGroup>
+
+---
+
+### Create Member
+
+<api method="POST" endpoint="/api/comunidades/socios/" auth="bearer" />
+
+Add a new member to a community.
+
+**Authentication Required:** Yes
+
+<ParamField body="comunidad" type="integer" required>
+  Community ID
+</ParamField>
+
+<ParamField body="consejo" type="integer">
+  Council ID (optional)
+</ParamField>
+
+<ParamField body="nombre" type="string" required>
+  Full name of the member
+</ParamField>
+
+<ParamField body="rol" type="string" required>
+  Role of the member
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 3,
+  "comunidad": 1,
+  "consejo": 1,
+  "nombre": "Carlos Ramírez",
+  "rol": "Tesorero"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/comunidades/socios/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "comunidad": 1,
+    "consejo": 1,
+    "nombre": "Carlos Ramírez",
+    "rol": "Tesorero"
+  }'
+```
+</CodeGroup>
+
+---
+
+### Update Member
+
+<api method="PUT" endpoint="/api/comunidades/socios/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/comunidades/socios/{id}/" auth="bearer" />
+
+Update a member's information.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Member ID
+</ParamField>
+
+---
+
+### Delete Member
+
+<api method="DELETE" endpoint="/api/comunidades/socios/{id}/" auth="bearer" />
+
+Remove a member from the community.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Member ID
+</ParamField>

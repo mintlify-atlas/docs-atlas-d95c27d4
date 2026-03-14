@@ -1,0 +1,782 @@
+---
+title: 'Reviewing Expenses'
+description: 'CPA auditor guide to reviewing, approving, and managing expense reports (rendiciones) in Auditoriapp'
+---
+
+## Overview
+
+As a CPA auditor, you are responsible for reviewing and validating all expense reports (rendiciones) submitted by communities. This guide provides a comprehensive framework for thorough, consistent expense review.
+
+## Your Review Responsibilities
+
+When reviewing rendiciones, you must verify:
+
+- **Documentation authenticity**: Invoices and receipts are genuine
+- **Amount accuracy**: Reported amounts match supporting documents
+- **Budget compliance**: Expenses are within project budgets
+- **Project alignment**: Expenses relate to approved project activities
+- **Regulatory compliance**: Expenses meet all applicable rules
+- **Proper authorization**: Expenses are legitimate and appropriate
+
+## Review Workflow Overview
+
+The standard review process:
+
+```
+1. Community creates rendición → Status: Pendiente
+2. CPA receives for review → You review documentation
+3. CPA makes decision:
+   ├─ Approve → Status: Aprobado → Payment processing
+   ├─ Observe → Status: Observado → Community corrects
+   └─ Reject → Status: Rechazado → No payment
+```
+
+## Accessing Rendiciones for Review
+
+### Method 1: Rendiciones Page (Recommended)
+
+<Steps>
+  <Step title="Navigate to Rendiciones">
+    Click **Rendiciones** in the main navigation menu.
+  </Step>
+  
+  <Step title="Filter by Pending Status">
+    Use the status filter to show only **Pendiente** rendiciones.
+    
+    These are expenses awaiting your review.
+  </Step>
+  
+  <Step title="Sort by Priority">
+    Sort by date to review oldest submissions first:
+    - Click on "Fecha Rendición" column header
+    - Oldest expenses appear first
+    - Ensures timely review
+  </Step>
+  
+  <Step title="Select a Rendición">
+    Click on a rendición to view full details and begin review.
+  </Step>
+</Steps>
+
+### Method 2: From Project Context
+
+Review all expenses for a specific project:
+
+<Steps>
+  <Step title="Navigate to Projects">
+    Click **Proyectos** to view all community projects.
+  </Step>
+  
+  <Step title="Select Project">
+    Click on the project whose expenses you want to review.
+  </Step>
+  
+  <Step title="Access Rendiciones Section">
+    Scroll to the **Rendiciones** section in project details.
+    
+    View all rendiciones for this project together for context.
+  </Step>
+  
+  <Step title="Review Individual Expenses">
+    Click on each rendición to review details.
+  </Step>
+</Steps>
+
+### Method 3: Dashboard Alerts
+
+Use dashboard notifications:
+
+- **Rendiciones Pendientes** count shows items awaiting review
+- Click the alert to navigate directly to pending list
+- Prioritize based on community needs or deadlines
+
+## Comprehensive Rendición Review Checklist
+
+For each rendición, systematically verify:
+
+### 1. Basic Information Validation
+
+<Steps>
+  <Step title="Verify Project Status">
+    Check that the associated project is approved:
+    
+    ✅ **Valid project states**:
+    - Aprobado (Approved)
+    - Ejecución (In Execution)
+    
+    ❌ **Invalid project states**:
+    - Borrador (Draft)
+    - Revisión Interna (Internal Review)
+    - Revisión CPA (Under your review)
+    - Observaciones (With observations)
+    
+    <Warning>
+    Expenses for unapproved projects should be rejected or observed.
+    </Warning>
+  </Step>
+  
+  <Step title="Confirm Community and Period">
+    Verify:
+    - Rendición belongs to correct community
+    - Community has active period
+    - Expense date is within period dates
+    - Period has available budget
+  </Step>
+  
+  <Step title="Check Submitter Authorization">
+    Verify the user who created the rendición:
+    - Has appropriate role (admin, directorio, etc.)
+    - Belongs to the correct community
+    - Is authorized to report expenses
+  </Step>
+</Steps>
+
+### 2. Financial Validation
+
+<Steps>
+  <Step title="Verify Reported Amount">
+    Check the **Monto Rendido** field:
+    
+    - Amount is reasonable and realistic
+    - Formatting is correct (Chilean pesos)
+    - No obvious data entry errors
+    - Amount makes sense for described expense
+  </Step>
+  
+  <Step title="Check Project Budget">
+    Calculate budget compliance:
+    
+    **Formula**:
+    ```
+    Total Rendido = Sum of all rendiciones (all statuses)
+    Available Budget = Presupuesto Total - Total Rendido
+    ```
+    
+    **Verify**:
+    - This rendición doesn't exceed available budget
+    - Sum of approved expenses is within project total
+    - No budget overruns
+    
+    <Note>
+    Total Rendido includes rendiciones in all statuses, not just approved ones.
+    </Note>
+  </Step>
+  
+  <Step title="Compare to Project Scope">
+    Assess if expense amount is appropriate:
+    - Aligns with project description
+    - Matches approved quotes if applicable
+    - Reasonable for the type of purchase
+    - Not suspiciously round numbers (potential fraud indicator)
+  </Step>
+</Steps>
+
+### 3. Documentation Review
+
+<Steps>
+  <Step title="Access Supporting Documents">
+    Click to view attached invoice or receipt:
+    - Document should open in browser or download
+    - Verify document is PDF format
+    - Check document is complete (all pages)
+  </Step>
+  
+  <Step title="Validate Document Authenticity">
+    Examine the invoice/receipt for:
+    
+    ✅ **Required elements**:
+    - Vendor name and tax ID (RUT)
+    - Vendor address and contact info
+    - Document number (factura/boleta number)
+    - Issue date
+    - Itemized breakdown of charges
+    - Subtotal, taxes (IVA), and total
+    - Vendor signature or official stamp
+    
+    ❌ **Red flags**:
+    - Handwritten "invoices" without official format
+    - Missing vendor information
+    - No document number
+    - Blurry or illegible scans
+    - Signs of alteration or tampering
+    - Photocopies instead of originals/scans
+  </Step>
+  
+  <Step title="Verify Amount Match">
+    **Critical check**: Rendición amount must match document total
+    
+    **Compare**:
+    - Monto Rendido field in system
+    - Total amount on invoice/receipt
+    - Must match exactly
+    
+    **Common issues**:
+    - ❌ Community reported subtotal instead of total
+    - ❌ Community excluded IVA (tax)
+    - ❌ Data entry error
+    - ❌ Wrong currency conversion
+    
+    <Warning>
+    Any discrepancy in amounts requires observation or rejection.
+    </Warning>
+  </Step>
+  
+  <Step title="Validate Document Number">
+    Check **Número Documento** field:
+    
+    - Matches invoice/receipt number on document
+    - Copied correctly (including prefixes/suffixes)
+    - No duplicates (not previously submitted)
+    - Format is standard for document type
+  </Step>
+  
+  <Step title="Verify Date Accuracy">
+    Check **Fecha Rendición**:
+    
+    - Matches date on invoice/receipt
+    - Is within project timeline
+    - Is within active period dates
+    - Is not in the future
+    - Makes logical sense in project sequence
+  </Step>
+</Steps>
+
+### 4. Description and Purpose Review
+
+<Steps>
+  <Step title="Read Description Carefully">
+    Review the **Descripción** field:
+    
+    ✅ **Good descriptions**:
+    - Clear and specific
+    - Explains what was purchased
+    - States purpose/project component
+    - Mentions vendor
+    - Provides context
+    
+    ❌ **Poor descriptions requiring observation**:
+    - Vague ("Materiales", "Pago")
+    - Missing purpose
+    - Doesn't match invoice
+    - Contradicts project scope
+  </Step>
+  
+  <Step title="Verify Alignment with Project">
+    Cross-reference with approved project:
+    
+    - Expense relates to project objectives
+    - Purchase was described in project plan
+    - Matches approved quotes if applicable
+    - Is reasonable for project type
+    - Fits within project timeline
+    
+    **Example checks**:
+    - Water system project → cement and pipes ✅, office furniture ❌
+    - Building construction → labor costs ✅, vehicle purchase ❌
+  </Step>
+  
+  <Step title="Check for Duplicate Expenses">
+    Verify this isn't a duplicate submission:
+    
+    - Review other rendiciones for same project
+    - Check for same invoice number
+    - Look for same amount and date
+    - Verify not double-billing
+  </Step>
+</Steps>
+
+### 5. Compliance and Policy Review
+
+<Steps>
+  <Step title="Verify Eligible Expense">
+    Ensure expense type is allowed:
+    
+    ✅ **Typically eligible**:
+    - Materials directly for project
+    - Labor costs for project work
+    - Professional services
+    - Equipment rental
+    - Project-specific supplies
+    
+    ❌ **Typically ineligible**:
+    - Personal expenses
+    - Administrative overhead (unless specified)
+    - Expenses before project approval
+    - Luxury or unnecessary items
+    - Items not in project scope
+  </Step>
+  
+  <Step title="Check Procurement Compliance">
+    If applicable, verify:
+    
+    - Competitive bidding was followed
+    - Expense is from approved/selected vendor
+    - Pricing aligns with approved quotes
+    - No conflicts of interest
+  </Step>
+  
+  <Step title="Assess Reasonableness">
+    Apply professional judgment:
+    
+    - Is the price reasonable for the item/service?
+    - Does quantity make sense?
+    - Is timing appropriate?
+    - Are there any suspicious patterns?
+  </Step>
+</Steps>
+
+## Making Review Decisions
+
+### Decision 1: Approve the Rendición
+
+Approve when all criteria are met:
+
+<Steps>
+  <Step title="Confirm All Checks Passed">
+    Verify:
+    - ✅ All validation checks passed
+    - ✅ Documentation is complete and authentic
+    - ✅ Amount matches invoice
+    - ✅ Within budget
+    - ✅ Aligns with project
+    - ✅ Complies with all policies
+  </Step>
+  
+  <Step title="Click Review Action">
+    In the rendición details or list view:
+    - Click **Revisar** button
+    - Review dialog opens
+  </Step>
+  
+  <Step title="Select Approved Status">
+    From the status dropdown or options:
+    - Choose **Aprobado**
+  </Step>
+  
+  <Step title="Add Approval Comments (Optional)">
+    Provide any relevant notes:
+    
+    **Optional comments**:
+    ```
+    Aprobado. Documentación completa y conforme.
+    ```
+    
+    ```
+    Verificado contra cotización aprobada. Proceder con pago.
+    ```
+    
+    Comments are optional for approvals but helpful for records.
+  </Step>
+  
+  <Step title="Submit Approval">
+    Click **Confirmar** or **Guardar**.
+    
+    The system records:
+    - Status changes to "Aprobado"
+    - Your user ID as reviewer (revisor)
+    - Current timestamp (fecha_revision)
+    - Optional comments (observacion field)
+    
+    The community is notified of approval.
+  </Step>
+</Steps>
+
+### Decision 2: Issue Observations
+
+Observe when corrections or clarifications are needed:
+
+<Steps>
+  <Step title="Document All Issues">
+    List everything that needs correction:
+    - Missing information
+    - Unclear descriptions
+    - Documentation quality issues
+    - Minor discrepancies
+    - Required clarifications
+  </Step>
+  
+  <Step title="Click Review Action">
+    Click **Revisar** on the rendición.
+  </Step>
+  
+  <Step title="Select Observado Status">
+    Choose **Observado** (With Observations).
+  </Step>
+  
+  <Step title="Write Clear, Actionable Observations">
+    In the **Observación** field, provide specific guidance:
+    
+    **Good observation example**:
+    ```
+    OBSERVACIONES:
+    
+    1. MONTO: Factura indica $150,000 pero rendición declara $180,000.
+       Favor verificar y corregir el monto.
+    
+    2. DOCUMENTO: La imagen de la factura está borrosa y no se puede 
+       leer el RUT del proveedor. Favor reescanear en alta calidad.
+    
+    3. DESCRIPCIÓN: Favor ampliar la descripción indicando qué 
+       materiales específicos se compraron y para qué componente del 
+       proyecto.
+    
+    4. FECHA: La fecha de la factura (15-03-2024) es anterior a la 
+       fecha de aprobación del proyecto (20-03-2024). Favor explicar.
+    
+    Favor crear nueva rendición con estas correcciones.
+    ```
+    
+    **Poor observation example** (too vague):
+    ```
+    Revisar documentos y monto.
+    ```
+    
+    **Observation best practices**:
+    - Number each issue clearly
+    - Be specific about what's wrong
+    - Explain how to fix it
+    - Be professional and constructive
+    - Indicate what action is needed
+  </Step>
+  
+  <Step title="Submit Observations">
+    Click **Confirmar** to send observations to the community.
+    
+    The system:
+    - Changes status to "Observado"
+    - Records your review
+    - Notifies community of observations
+    - Requires community to submit corrected rendición
+  </Step>
+</Steps>
+
+### Decision 3: Reject the Rendición
+
+Reject when the expense should not be approved:
+
+<Steps>
+  <Step title="Identify Rejection Reason">
+    Determine why the expense must be rejected:
+    
+    **Valid rejection reasons**:
+    - Fraudulent or falsified documentation
+    - Expense completely outside project scope
+    - Duplicate submission (already paid)
+    - Ineligible expense type
+    - Project not approved or cancelled
+    - Major compliance violation
+    - Exceeds budget with no resolution possible
+  </Step>
+  
+  <Step title="Click Review Action">
+    Click **Revisar** on the rendición.
+  </Step>
+  
+  <Step title="Select Rejected Status">
+    Choose **Rechazado** from status options.
+  </Step>
+  
+  <Step title="Write Clear Rejection Reason">
+    In the **Observación** field, explain the rejection:
+    
+    **Rejection example**:
+    ```
+    RECHAZADO
+    
+    Razón: El gasto reportado no corresponde al alcance del proyecto 
+    aprobado. El proyecto aprobado es para "Mejoramiento de Sistema de 
+    Agua Potable" y esta rendición es para compra de equipamiento de 
+    oficina, lo cual no está contemplado en los objetivos ni presupuesto 
+    del proyecto.
+    
+    Según las normativas, este tipo de gasto no es elegible para 
+    reembolso de fondos del proyecto.
+    
+    Esta rendición no puede ser aprobada. Si el gasto se realizó por 
+    error, debe ser asumido por otros fondos de la comunidad.
+    ```
+    
+    **Be clear and factual**:
+    - State the specific policy or rule violated
+    - Explain why it cannot be approved
+    - Be professional, not accusatory
+    - Provide guidance if appropriate
+  </Step>
+  
+  <Step title="Confirm Rejection">
+    Click **Confirmar** to reject the rendición.
+    
+    <Warning>
+    Rejection is final for this rendición. The community must absorb the cost or fund from other sources.
+    </Warning>
+    
+    The system:
+    - Changes status to "Rechazado"
+    - Records your review and reason
+    - Notifies community of rejection
+    - Expense will not be paid
+  </Step>
+</Steps>
+
+## Review Best Practices
+
+### Efficiency Strategies
+
+**Batch by Community**:
+- Review all rendiciones from one community together
+- Understand community's project context
+- Identify patterns or recurring issues
+
+**Batch by Project**:
+- Review all expenses for one project at once
+- Better understanding of budget consumption
+- Spot inconsistencies or duplicates
+
+**Prioritize by Age**:
+- Review oldest submissions first
+- Communities waiting longest get priority
+- Maintains service level standards
+
+**Set Regular Schedule**:
+- Review rendiciones on fixed days (e.g., Tuesday/Friday)
+- Communities know when to expect feedback
+- Prevents backlog buildup
+
+### Quality Standards
+
+**Thoroughness**:
+- Complete all checklist items for every rendición
+- Don't rush reviews
+- Verify every claim
+- Document concerns
+
+**Consistency**:
+- Apply same standards to all communities
+- Use similar observation language for similar issues
+- Fair and equitable treatment
+- Build trust through predictability
+
+**Documentation**:
+- Always add comments to observations and rejections
+- Record approval notes when helpful
+- Create audit trail
+- Enable future reference
+
+**Timeliness**:
+- Review within 2-3 business days when possible
+- Don't let rendiciones sit for weeks
+- Prompt review helps community cash flow
+- Timely feedback improves compliance
+
+### Communication Guidelines
+
+**Be Specific**:
+- Identify exact issue ("Factura borrosa" not "Documento malo")
+- Reference specific fields or values
+- Quote exact numbers when noting discrepancies
+
+**Be Constructive**:
+- Focus on improvement, not blame
+- Explain how to correct issues
+- Educate through observations
+- Build community capacity
+
+**Be Professional**:
+- Maintain neutral, professional tone
+- Avoid accusatory language
+- Be respectful even when rejecting
+- Separate person from problem
+
+**Be Clear**:
+- Use simple, direct language
+- Avoid jargon when possible
+- Number multiple observations
+- Format for easy reading
+
+## Red Flags and Fraud Indicators
+
+Be alert for potential fraud:
+
+### Documentation Red Flags
+
+- **Handwritten invoices**: Without official format or tax ID
+- **Blurry documents**: Deliberately obscured details
+- **Missing information**: Vendor details, dates, or numbers absent
+- **Altered documents**: Signs of erasure, white-out, or digital editing
+- **Photocopies only**: Never original scans
+- **Inconsistent formatting**: Mixed fonts, alignments in single document
+
+### Financial Red Flags
+
+- **Round numbers**: All expenses exactly $100,000, $500,000, etc.
+- **Just under thresholds**: Suspiciously close to approval limits
+- **Frequent max amounts**: Always claiming maximum allowed
+- **Rapid succession**: Many large expenses in short time
+- **Budget exhaustion**: Perfectly consuming entire budget
+
+### Pattern Red Flags
+
+- **Same vendor repeatedly**: All expenses to single vendor
+- **Similar amounts**: Multiple rendiciones for nearly identical amounts
+- **Duplicate invoices**: Same invoice number submitted twice
+- **Sequential numbering**: Invoice numbers are consecutive or predictable
+- **Related parties**: Vendor has family/personal ties to submitter
+
+### Action for Suspected Fraud
+
+If you suspect fraudulent activity:
+
+1. **Do not approve**: Issue observations or reject
+2. **Document thoroughly**: Screenshot and note all concerns
+3. **Request additional evidence**: Ask for supporting documentation
+4. **Escalate if needed**: Report to supervisor or compliance officer
+5. **Maintain objectivity**: Let investigation determine facts
+
+<Warning>
+Never approve suspicious rendiciones "to be nice" or under pressure. Your review protects public funds.
+</Warning>
+
+## Managing Observation Follow-up
+
+### After Issuing Observations
+
+When you observe a rendición:
+
+1. **Community reviews observations**: Reads your comments
+2. **Community corrects issues**: Prepares new documentation or information
+3. **Community creates new rendición**: Submits corrected expense
+4. **You review again**: New rendición appears as Pendiente
+
+### Reviewing Corrected Rendiciones
+
+<Steps>
+  <Step title="Identify Corrected Submission">
+    Look for indicators:
+    - Description mentions previous rendición
+    - References your observation number
+    - Same project, similar amount
+  </Step>
+  
+  <Step title="Review Original Observations">
+    - Find original rendición (status: Observado)
+    - Read your observation comments
+    - Note what needed correction
+  </Step>
+  
+  <Step title="Verify Corrections Made">
+    Check that community addressed each observation:
+    - Issue #1 corrected? ✅ / ❌
+    - Issue #2 corrected? ✅ / ❌
+    - Issue #3 corrected? ✅ / ❌
+  </Step>
+  
+  <Step title="Make Decision">
+    - **All corrected**: Approve
+    - **Some remaining issues**: Observe again
+    - **New issues found**: Observe with new comments
+    - **Fundamentally flawed**: Reject
+  </Step>
+</Steps>
+
+## Technical Review Steps
+
+API-level checks performed:
+
+### System Validations
+
+The system automatically enforces:
+
+- **Role-based access**: Only CPA role can review (backend/rendiciones/views.py:27-29)
+- **Status recording**: Reviewer, timestamp, and decision logged (backend/rendiciones/views.py:37-40)
+- **Valid status transitions**: Can only approve/observe/reject from Pendiente
+- **Audit trail**: All actions permanently recorded
+
+### Your Additional Checks
+
+Beyond system validations, you verify:
+
+- Business rule compliance
+- Documentation quality and authenticity
+- Reasonableness and appropriateness
+- Policy and regulatory compliance
+
+## Troubleshooting Review Issues
+
+### Cannot Access Review Function
+
+**Issue**: "Revisar" button is disabled or missing
+
+**Solutions**:
+- Verify you're logged in with CPA role (`cpa` or `CPA Revisor`)
+- Check rendición status is "Pendiente"
+- Refresh the page
+- Clear browser cache
+
+### Document Won't Open
+
+**Issue**: Cannot view attached invoice/receipt
+
+**Solutions**:
+- Check browser allows pop-ups
+- Try downloading instead of viewing in browser
+- Verify document was actually uploaded (document ID present)
+- Try different browser
+- Contact technical support if document is corrupted
+
+### Status Change Failed
+
+**Issue**: Error when trying to approve/observe/reject
+
+**Solutions**:
+- Verify rendición is in Pendiente status
+- Check you have CPA role permissions
+- Ensure you filled observation field if observing/rejecting
+- Check network connection
+- Try again in a few minutes
+
+### Cannot See All Communities' Rendiciones
+
+**Issue**: Only seeing one community's expenses
+
+**Solutions**:
+- Verify your user role is `cpa` (not community-specific role)
+- Check you're not filtering by community
+- Confirm your user isn't assigned to a specific community
+- Contact administrator to verify permissions
+
+## Reporting and Analytics
+
+Use the dashboard to monitor:
+
+### Key Metrics
+
+- **Total rendiciones pendientes**: Your review queue size
+- **Rendiciones observadas**: Items awaiting community correction
+- **Rendiciones aprobadas**: Successfully reviewed expenses
+- **Rendiciones rechazadas**: Denied expenses
+
+### Patterns to Monitor
+
+- **Community compliance**: Which communities frequently have observations?
+- **Common issues**: What observations recur across communities?
+- **Approval rates**: What percentage of rendiciones are approved first time?
+- **Review time**: How long from submission to approval average?
+
+### Use Insights For
+
+- **Training needs**: Educate communities on common mistakes
+- **Process improvement**: Streamline frequent issues
+- **Policy clarification**: Update guidelines based on questions
+- **Performance tracking**: Monitor your review efficiency
+
+## Remember
+
+Your review role is critical:
+
+- You ensure proper use of funds
+- You protect community resources
+- You maintain public trust
+- You enable legitimate expenses to be paid
+- Your thoroughness ensures accountability
+
+Be diligent, fair, and timely in all reviews.

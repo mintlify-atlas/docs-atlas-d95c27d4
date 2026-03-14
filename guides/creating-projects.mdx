@@ -1,0 +1,574 @@
+---
+title: 'Creating Projects'
+description: 'Step-by-step guide to creating, documenting, and submitting projects for approval in Auditoriapp'
+---
+
+## Overview
+
+Projects are the core of Auditoriapp's financial management system. This guide provides a comprehensive walkthrough of creating a project from initial conception through final approval.
+
+## Prerequisites
+
+Before creating a project, ensure you have:
+
+- **Active Period**: Your community must have an active period with available budget
+- **Required Role**: `directorio`, `presidente`, or `admin` role
+- **Documentation Ready**: Assembly minutes, vendor quotes, and supporting documents
+- **Budget Clarity**: Clear understanding of project costs and budget needs
+
+<Warning>
+You cannot create projects without an active period. If you see "No hay período vigente", contact your administrator to create a period first.
+</Warning>
+
+## Understanding Project Components
+
+A complete project in Auditoriapp includes:
+
+### Basic Information
+- **Project name** and description
+- **Start and end dates**
+- **Total budget amount**
+- **Associated community** (automatically assigned)
+- **Associated period** (automatically assigned)
+
+### Strategic Formulation
+- **Objectives** (Objetivos): What the project aims to achieve
+- **Justification** (Justificación): Why the project is needed
+- **Estimated beneficiaries** (Beneficiarios Estimados): Number of people who will benefit
+
+### Governance Requirements
+- **Assembly quorum** (Quorum Asamblea): Number of attendees who approved the project
+- **President signature** (Firma Presidente): Presidential approval confirmation
+- **Signature date**: When approval was granted
+
+### Required Documents
+- **Assembly minutes** (Acta): Official record of project approval
+- **Vendor quotes** (Cotizaciones): Multiple competitive quotes (typically 3)
+- **Selected quote** (Cotización Elegida): The winning vendor quote
+
+## Project Creation Workflow
+
+### Step 1: Access Project Creation
+
+<Steps>
+  <Step title="Navigate to Projects">
+    From the main dashboard, click on **Proyectos** in the navigation menu.
+  </Step>
+  
+  <Step title="Initiate Creation">
+    Click the **Crear Proyecto** button in the top right corner.
+  </Step>
+  
+  <Step title="Verify Active Period">
+    The system automatically checks for an active period:
+    - If an active period exists, the form opens
+    - If no active period exists, you'll see an error modal
+  </Step>
+</Steps>
+
+### Step 2: Enter Basic Information
+
+Fill in the fundamental project details:
+
+<Steps>
+  <Step title="Project Name">
+    Enter a clear, descriptive name:
+    
+    **Good examples**:
+    - "Mejoramiento Sistema de Agua Potable"
+    - "Construcción Sede Comunitaria"
+    - "Pavimentación Calle Principal"
+    
+    **Avoid**:
+    - "Proyecto 1"
+    - "Obra"
+    - Vague or generic names
+  </Step>
+  
+  <Step title="Description">
+    Provide a detailed description (2-3 paragraphs recommended):
+    
+    Include:
+    - What will be built/done
+    - Where it will be located
+    - Technical specifications
+    - Expected outcomes
+    
+    Example:
+    ```
+    Construcción de una nueva sede comunitaria de 100m² que incluirá:
+    - Sala de reuniones con capacidad para 50 personas
+    - Oficina administrativa
+    - Baños accesibles
+    - Cocina comunitaria
+    
+    La obra se realizará en el terreno comunitario ubicado en calle...
+    ```
+  </Step>
+  
+  <Step title="Project Dates">
+    Set realistic start and end dates:
+    
+    **Start Date** (Fecha Inicio):
+    - Typically 1-2 weeks after expected approval
+    - Must be within the active period
+    
+    **End Date** (Fecha Fin):
+    - Consider realistic timeline for completion
+    - Include buffer time for delays
+    - Must be before period end date
+  </Step>
+  
+  <Step title="Total Budget">
+    Enter the complete project budget:
+    
+    **Important considerations**:
+    - Must not exceed period available budget
+    - Should match the selected quote amount
+    - Include all costs (materials, labor, fees)
+    - Enter as whole number (e.g., 5000000 for $5,000,000)
+    
+    The system displays the formatted amount with Chilean peso formatting.
+  </Step>
+</Steps>
+
+### Step 3: Complete Strategic Formulation
+
+Provide the strategic justification for your project:
+
+<Steps>
+  <Step title="Define Objectives">
+    List clear, measurable objectives:
+    
+    **Example**:
+    ```
+    OBJETIVOS:
+    1. Proveer espacio adecuado para reuniones comunitarias
+    2. Mejorar la organización administrativa de la comunidad
+    3. Crear un punto de encuentro accesible para todos los vecinos
+    4. Fortalecer la identidad y participación comunitaria
+    ```
+    
+    Use the SMART criteria: Specific, Measurable, Achievable, Relevant, Time-bound
+  </Step>
+  
+  <Step title="Write Justification">
+    Explain why this project is necessary:
+    
+    **Include**:
+    - Current problem or need
+    - Impact of not doing the project
+    - Benefits to the community
+    - Alignment with community priorities
+    
+    **Example**:
+    ```
+    Actualmente la comunidad no cuenta con un espacio apropiado para 
+    realizar asambleas y actividades comunitarias. Las reuniones se 
+    realizan al aire libre, expuestas a condiciones climáticas adversas, 
+    lo que reduce la participación. 
+    
+    Una sede comunitaria permitirá:
+    - Realizar reuniones durante todo el año
+    - Centralizar la documentación y administración
+    - Ofrecer un espacio para actividades sociales y culturales
+    - Mejorar la imagen y organización de la comunidad
+    ```
+  </Step>
+  
+  <Step title="Estimate Beneficiaries">
+    Enter the number of people who will benefit:
+    
+    **How to calculate**:
+    - Direct beneficiaries: Community members who directly use the facility/service
+    - Indirect beneficiaries: Family members, visitors, future residents
+    
+    **Be realistic**: Base estimates on:
+    - Current community population
+    - Expected usage patterns
+    - Service capacity
+    
+    Example: For a 50-person capacity community center in a 200-family community:
+    - Direct: 200 families × 4 average family size = 800 people
+  </Step>
+</Steps>
+
+### Step 4: Document Governance Approval
+
+Record the democratic approval process:
+
+<Steps>
+  <Step title="Enter Assembly Quorum">
+    Record the number of community members who attended and voted:
+    
+    **Quorum Asamblea**: Enter the count from your assembly minutes
+    
+    Example: If 45 community members attended the assembly, enter 45
+    
+    <Note>
+    This number should match the attendance record in your assembly minutes (acta).
+    </Note>
+  </Step>
+  
+  <Step title="Confirm Presidential Approval">
+    Check the **Firma Presidente** checkbox to indicate the president has approved:
+    
+    The system automatically records:
+    - That approval was granted (firma_presidente = true)
+    - The timestamp when you checked the box (fecha_firma_presidente)
+    - Your user identity
+    
+    <Warning>
+    Only check this box if the president has genuinely approved the project.
+    </Warning>
+  </Step>
+</Steps>
+
+### Step 5: Upload Required Documents
+
+Documentation is critical for approval. Upload documents in this sequence:
+
+<Steps>
+  <Step title="Upload Assembly Minutes (Acta)">
+    The acta is the official record of project approval:
+    
+    **Click "Subir Acta"**:
+    1. Click the "Subir Acta" button
+    2. Select your PDF file
+    3. Wait for the upload to complete
+    4. You'll see a confirmation with the filename
+    
+    **Acta must include**:
+    - Date and time of assembly
+    - Attendance list with signatures
+    - Project approval vote results
+    - President and secretary signatures
+    - Discussion summary
+    
+    **File requirements**:
+    - PDF format only
+    - Clear, legible scan
+    - All pages included
+    - Maximum 10MB file size
+  </Step>
+  
+  <Step title="Upload Vendor Quotes (Cotizaciones)">
+    Upload multiple competitive quotes:
+    
+    **For each quote**:
+    1. Click "Subir Cotización"
+    2. Select the vendor quote PDF
+    3. Wait for upload confirmation
+    4. Repeat for each additional quote
+    
+    **Best practices**:
+    - Upload at least 3 quotes from different vendors
+    - Ensure quotes are for comparable scopes of work
+    - Verify quotes include itemized breakdowns
+    - Check that quotes are recent (within last 60 days)
+    
+    **Each quote should show**:
+    - Vendor name and contact information
+    - Detailed cost breakdown
+    - Scope of work description
+    - Validity period
+    - Vendor signature or stamp
+  </Step>
+  
+  <Step title="Upload Selected Quote (Cotización Elegida)">
+    Upload the quote from the vendor you selected:
+    
+    **Click "Subir Cotización Elegida"**:
+    1. Select the winning vendor's quote
+    2. Upload the PDF
+    3. Confirm upload success
+    
+    <Note>
+    This should be one of the quotes you already uploaded in the previous step, but marked as the selected one.
+    </Note>
+    
+    **Selection criteria documented**:
+    - Best value (not necessarily lowest price)
+    - Vendor qualifications
+    - Timeline feasibility
+    - Quality considerations
+  </Step>
+  
+  <Step title="Verify All Documents Uploaded">
+    Before submitting, confirm:
+    
+    - ✅ Acta uploaded (filename visible)
+    - ✅ At least 3 cotizaciones uploaded
+    - ✅ Cotización elegida uploaded
+    - ✅ All files are correct and complete
+    
+    The form shows uploaded filenames for verification.
+  </Step>
+</Steps>
+
+### Step 6: Review and Submit
+
+<Steps>
+  <Step title="Review All Information">
+    Before clicking submit, verify:
+    
+    **Basic Information**:
+    - [ ] Project name is clear and descriptive
+    - [ ] Description is complete and detailed
+    - [ ] Dates are realistic and within period
+    - [ ] Budget is accurate and within allocation
+    
+    **Strategic Content**:
+    - [ ] Objectives are clear and measurable
+    - [ ] Justification is compelling and complete
+    - [ ] Beneficiaries estimate is reasonable
+    
+    **Governance**:
+    - [ ] Quorum number matches acta
+    - [ ] Presidential approval is confirmed
+    
+    **Documents**:
+    - [ ] All 3 document types uploaded
+    - [ ] Files are correct and complete
+  </Step>
+  
+  <Step title="Submit the Project">
+    Click the **Crear Proyecto** button at the bottom of the form.
+    
+    The system will:
+    1. Validate all required fields
+    2. Check document uploads
+    3. Verify budget availability
+    4. Create the project with status "Borrador"
+    5. Associate uploaded documents with the project
+    6. Show success confirmation
+  </Step>
+  
+  <Step title="Confirm Creation">
+    You'll see a success modal confirming the project was created.
+    
+    The project is now in **Borrador** (Draft) status and appears in your projects list.
+  </Step>
+</Steps>
+
+## After Project Creation
+
+### Initial Status: Borrador
+
+Your newly created project starts in **Borrador** (Draft) status:
+
+- Visible only to your community
+- Can still be edited if needed
+- Not yet in any review queue
+- Ready to be submitted for internal review
+
+### Next Steps
+
+<Steps>
+  <Step title="Review the Created Project">
+    Click on the project in the projects list to view full details and verify everything is correct.
+  </Step>
+  
+  <Step title="Edit if Needed">
+    If you notice errors, you can edit the project while it's still in Borrador status.
+  </Step>
+  
+  <Step title="Submit for Internal Review">
+    When ready, change the status to **Revisión Interna**:
+    1. Click "Cambiar Estado"
+    2. Select "Revisión Interna"
+    3. Add optional comments
+    4. Confirm
+    
+    This moves the project into your community's internal review process.
+  </Step>
+</Steps>
+
+## Project Submission Workflow
+
+Once created, projects move through approval stages:
+
+### Stage 1: Internal Review (Revisión Interna)
+
+**Purpose**: Community validates the project internally
+
+**Who can submit**: Any admin or directorio member
+
+**Actions**:
+- Review completeness
+- Verify accuracy
+- Confirm community consensus
+- Check document quality
+
+### Stage 2: CPA Review (Revisión CPA)
+
+**Purpose**: External auditor reviews for compliance and approval
+
+**Who can submit**: Only `presidente` or `directorio` roles
+
+**Requirements**:
+- Must be in "Revisión Interna" status first
+- All documents must be uploaded
+- All required fields completed
+
+**To submit**:
+1. Open project details
+2. Click "Cambiar Estado"
+3. Select "Revisión CPA"
+4. Add comments for the CPA
+5. Confirm submission
+
+### Stage 3: CPA Approval or Observations
+
+**CPA Reviews and**:
+
+**Option A - Approves**:
+- Status changes to "Aprobado"
+- You can begin execution
+- You can start reporting expenses
+
+**Option B - Issues Observations**:
+- Status changes to "Observaciones"
+- CPA comments explain required corrections
+- You must address observations
+- Resubmit by changing status back to "Revisión Interna"
+
+### Stage 4: Execution (Ejecución)
+
+Once approved:
+- Change status to "Ejecución" when work begins
+- Report expenses (rendiciones) as they occur
+- Update physical progress if you're ITO
+- Monitor budget consumption
+
+### Stage 5: Closure (Cierre)
+
+When project is complete:
+- All work finished
+- All expenses reported and approved
+- Final documentation submitted
+- Change status to "Cierre"
+
+## Common Validation Errors
+
+### "No hay período vigente"
+
+**Cause**: No active period exists for your community
+
+**Solution**:
+- Contact administrator to create a period
+- Verify period dates include today's date
+- Check that period is marked as "activo"
+
+### "Presupuesto excede monto disponible"
+
+**Cause**: Project budget exceeds available period budget
+
+**Solution**:
+- Reduce project budget
+- Split into multiple projects
+- Wait for next period
+- Request period budget increase from administrator
+
+### Document Upload Failed
+
+**Cause**: File size, format, or network issue
+
+**Solution**:
+- Ensure file is PDF format
+- Reduce file size (compress PDF)
+- Check internet connection
+- Try a different browser
+
+### Cannot Submit to CPA
+
+**Cause**: Status transition not allowed or insufficient permissions
+
+**Solution**:
+- Verify project is in "Revisión Interna" status
+- Confirm you have `presidente` or `directorio` role
+- Ensure all documents uploaded
+- Check all required fields completed
+
+## Best Practices
+
+### Planning
+
+- **Start early**: Begin preparing documentation before the period starts
+- **Gather quotes**: Obtain vendor quotes well in advance
+- **Hold assembly**: Get community approval before creating in system
+- **Verify budget**: Ensure period has sufficient available funds
+
+### Documentation
+
+- **High quality scans**: Use 300 DPI or higher for documents
+- **Complete documents**: Include all pages, signatures visible
+- **Organized files**: Name files clearly before uploading
+- **Keep originals**: Maintain physical copies of all documents
+
+### Budgeting
+
+- **Detailed breakdown**: Include all cost components
+- **Contingency**: Add 10-15% buffer for unexpected costs
+- **Quote alignment**: Budget should match selected quote
+- **Period limits**: Never exceed available period budget
+
+### Writing Quality
+
+- **Clear objectives**: Use specific, measurable language
+- **Compelling justification**: Explain community impact
+- **Accurate beneficiaries**: Base on real community data
+- **Professional tone**: Use formal, clear Spanish
+
+### Governance
+
+- **Legitimate approval**: Only mark president approval if genuinely granted
+- **Accurate quorum**: Match numbers to actual attendance
+- **Complete minutes**: Ensure acta includes all required elements
+- **Democratic process**: Follow community bylaws and procedures
+
+## Tips for Faster Approval
+
+1. **Complete all fields thoroughly** - incomplete projects get observations
+2. **Upload high-quality documents** - poor scans delay review
+3. **Write clear justifications** - help reviewers understand need
+4. **Align budgets with quotes** - mismatches raise red flags
+5. **Include detailed descriptions** - vague projects get questioned
+6. **Verify calculations** - math errors require corrections
+7. **Follow governance procedures** - legitimate approvals process faster
+8. **Respond quickly to observations** - delays push back timelines
+
+## Troubleshooting
+
+### Project Not Appearing in List
+
+**Check**:
+- Refresh the page
+- Verify you're logged in as correct user
+- Check filters aren't hiding the project
+- Look for error messages from submission
+
+### Cannot Edit Project
+
+**Reason**: Projects can only be edited in certain statuses
+
+**Solution**:
+- If in review, wait for observations or approval
+- If observations received, you can edit
+- Contact administrator for stuck projects
+
+### Documents Not Visible
+
+**Check**:
+- Document IDs in the project data
+- Browser allows pop-ups
+- File actually uploaded (confirmation received)
+- Contact support if files missing
+
+### Budget Calculations Wrong
+
+**Verify**:
+- All rendiciones totals
+- Sum doesn't exceed project budget
+- Refresh data to get latest totals
+- Check for pending vs approved amounts

@@ -1,0 +1,376 @@
+---
+title: 'Community Administrator Guide'
+description: 'Complete guide for community administrators managing projects, budgets, and financial reporting in Auditoriapp'
+---
+
+## Overview
+
+As a Community Administrator (Admin Comunidad), you are responsible for managing your community's projects, budgets, and financial operations within Auditoriapp. This guide covers all essential workflows for your role.
+
+## Your Responsibilities
+
+Community Administrators have the following key responsibilities:
+
+- Managing community members and organizational structure
+- Creating and managing projects within active periods
+- Submitting projects for internal and external review
+- Reporting project expenses (rendiciones)
+- Monitoring project progress and budget execution
+- Managing assembly documentation and governance requirements
+
+## Access & Permissions
+
+Your role (`directorio` or `presidente`) provides access to:
+
+- **Full project management** for your community
+- **Expense reporting** capabilities
+- **Document upload** for evidence and governance
+- **Period and budget** visibility
+- **Dashboard KPIs** specific to your community
+
+<Note>
+All data is isolated to your community. You cannot view or access other communities' information.
+</Note>
+
+## Managing Your Community
+
+### Viewing Community Information
+
+Your community information is automatically loaded when you log in. The dashboard displays:
+
+- Active period name and budget allocation
+- Total projects count
+- Active projects in execution
+- Budget execution percentage
+- Pending and observed expenses
+
+### Managing Community Members (Socios)
+
+<Steps>
+  <Step title="Navigate to Socios">
+    From the main navigation menu, click on **Socios** to view your community members.
+  </Step>
+  
+  <Step title="Add a New Member">
+    Click the **Agregar Socio** button to open the member creation form.
+  </Step>
+  
+  <Step title="Fill Member Details">
+    Enter the following information:
+    - **Name**: Full name of the community member
+    - **Role**: Position within the community (e.g., Presidente, Tesorero)
+    - **Consejo** (optional): Assign to a specific council if applicable
+  </Step>
+  
+  <Step title="Save the Member">
+    Click **Guardar** to create the new member record.
+  </Step>
+</Steps>
+
+### Managing Councils (Consejos)
+
+If your community has multiple councils, you can organize members by council:
+
+- Councils are sub-groups within your community
+- Each member can be assigned to a specific council
+- This helps with organizational structure and reporting
+
+## Working with Periods
+
+### Understanding Periods
+
+Periods (Periodos) represent budget allocation cycles for your community:
+
+- Each period has a **start date** and **end date**
+- Contains an **assigned budget** (`monto_asignado`)
+- May include **carryover funds** from previous periods (`monto_anterior`)
+- Only one period should be active at any given time
+
+<Warning>
+You cannot create projects without an active period. Ensure your period dates cover the current date.
+</Warning>
+
+### Checking Your Active Period
+
+The dashboard automatically displays your active period:
+
+- Period name
+- Assigned budget amount
+- Start and end dates
+- Remaining budget
+
+If you see a "No hay período vigente" message, contact your system administrator to create a new period.
+
+## Project Management Workflow
+
+### Creating a New Project
+
+<Steps>
+  <Step title="Navigate to Projects">
+    Click on **Proyectos** in the main menu to access the projects list.
+  </Step>
+  
+  <Step title="Initiate Project Creation">
+    Click the **Crear Proyecto** button. The system will verify you have an active period before proceeding.
+  </Step>
+  
+  <Step title="Enter Basic Information">
+    Fill in the project fundamentals:
+    - **Nombre**: Project name
+    - **Descripción**: Detailed description
+    - **Fecha Inicio**: Project start date
+    - **Fecha Fin**: Expected completion date
+    - **Presupuesto Total**: Total budget amount
+  </Step>
+  
+  <Step title="Complete Project Formulation">
+    Provide strategic information:
+    - **Objetivos**: Main project objectives
+    - **Justificación**: Why this project is necessary
+    - **Beneficiarios Estimados**: Number of people who will benefit
+  </Step>
+  
+  <Step title="Add Governance Information">
+    Document assembly approval:
+    - **Quorum Asamblea**: Number of attendees at the assembly meeting
+    - **Firma Presidente**: Mark as approved by the president
+  </Step>
+  
+  <Step title="Upload Required Documents">
+    Upload supporting documentation in this order:
+    
+    **Assembly Minutes (Acta)**:
+    - Click "Subir Acta"
+    - Select your PDF file
+    - Wait for upload confirmation
+    
+    **Quotations (Cotizaciones)**:
+    - Upload multiple vendor quotes
+    - Each quote uploads separately
+    
+    **Selected Quote (Cotización Elegida)**:
+    - Upload the winning/selected vendor quote
+  </Step>
+  
+  <Step title="Submit the Project">
+    Once all fields are complete and documents uploaded, click **Crear Proyecto**. The project will be created with status "Borrador" (Draft).
+  </Step>
+</Steps>
+
+### Project Status Workflow
+
+Projects move through the following states:
+
+1. **Borrador** (Draft): Initial state after creation
+2. **Revisión Interna** (Internal Review): Submitted for community review
+3. **Revisión CPA** (CPA Review): Submitted to external auditor
+4. **Observaciones** (With Observations): Returned for corrections
+5. **Aprobado** (Approved): CPA approved, ready for execution
+6. **Ejecución** (In Execution): Project is being implemented
+7. **Cierre** (Closed): Project completed
+
+### Submitting a Project for Review
+
+<Steps>
+  <Step title="Access Project Details">
+    From the projects list, click on the project you want to submit.
+  </Step>
+  
+  <Step title="Review Project Information">
+    Verify all information is complete:
+    - All required fields filled
+    - Documents uploaded
+    - Budget amounts correct
+  </Step>
+  
+  <Step title="Submit for Internal Review">
+    If the project is in "Borrador" status:
+    - Click **Cambiar Estado**
+    - Select **Revisión Interna**
+    - Add optional comments
+    - Confirm the change
+  </Step>
+  
+  <Step title="Submit to CPA Review">
+    After internal review (requires Presidente or Directorio role):
+    - Click **Cambiar Estado**
+    - Select **Revisión CPA**
+    - Add any relevant comments for the auditor
+    - Confirm submission
+  </Step>
+</Steps>
+
+<Note>
+Only users with `presidente` or `directorio` roles can submit projects from Internal Review to CPA Review.
+</Note>
+
+### Handling Project Observations
+
+If the CPA returns a project with observations:
+
+1. **Review Observations**: Check the project history to see the CPA's comments
+2. **Make Corrections**: Update the required information or documents
+3. **Resubmit**: Change status back to "Revisión Interna" and follow the submission process again
+
+## Expense Reporting (Rendiciones)
+
+### When to Create an Expense Report
+
+Create a rendición when:
+
+- You have incurred an expense for an approved project
+- You have the supporting documentation (invoice, receipt)
+- The project is in "Aprobado" or "Ejecución" status
+
+### Creating an Expense Report
+
+<Steps>
+  <Step title="Navigate to Project Details">
+    Open the project for which you're reporting expenses.
+  </Step>
+  
+  <Step title="Access Expense Form">
+    In the project details page, locate the **Rendiciones** section and click **Crear Rendición**.
+  </Step>
+  
+  <Step title="Upload Supporting Document">
+    Before filling the form:
+    - Click **Seleccionar Documento**
+    - Choose your invoice/receipt PDF file
+    - The system uploads it immediately
+  </Step>
+  
+  <Step title="Complete Expense Details">
+    Fill in all required fields:
+    - **Monto Rendido**: Amount being reported
+    - **Número Documento**: Invoice or receipt number
+    - **Descripción**: Description of the expense
+    - **Fecha Rendición**: Date of the expense
+  </Step>
+  
+  <Step title="Submit the Report">
+    Click **Crear Rendición**. The expense will be created with status "Pendiente" (Pending review).
+  </Step>
+</Steps>
+
+### Expense Review Status
+
+After submission, your expense goes through review:
+
+- **Pendiente** (Pending): Awaiting CPA review
+- **Aprobado** (Approved): CPA approved the expense
+- **Observado** (With Observations): CPA requested corrections or clarifications
+- **Rechazado** (Rejected): Expense was not approved
+- **Pagado** (Paid): Payment has been processed to the vendor
+
+### Responding to Expense Observations
+
+If an expense is marked as "Observado":
+
+1. Check the **Observación** field to see the reviewer's comments
+2. Prepare additional documentation or corrections
+3. Contact the CPA reviewer to resolve the issue
+4. Submit a new rendición if needed with corrected information
+
+## Physical Progress Reporting (ITO Only)
+
+If you have the ITO (Responsable) role, you can report physical progress:
+
+<Steps>
+  <Step title="Access Project">
+    Navigate to the project details page.
+  </Step>
+  
+  <Step title="Create Progress Report">
+    In the **Avances Físicos** section, click **Reportar Avance**.
+  </Step>
+  
+  <Step title="Enter Progress Information">
+    - **Porcentaje Avance**: Completion percentage (0-100)
+    - **Observaciones**: Description of work completed
+    - **Foto Avance** (optional): Upload progress photos
+  </Step>
+  
+  <Step title="Submit Report">
+    Click **Guardar** to create the progress report.
+  </Step>
+</Steps>
+
+## Best Practices
+
+### Document Management
+
+- **Upload documents immediately** after creating them, don't wait
+- **Use descriptive filenames** for easy identification
+- **Keep original documents** as backup
+- **Ensure PDFs are clear and readable**
+
+### Budget Planning
+
+- **Monitor your period budget** regularly from the dashboard
+- **Don't exceed allocated budgets** when creating projects
+- **Track execution** through the dashboard KPIs
+- **Review pending rendiciones** to understand committed funds
+
+### Project Submission
+
+- **Complete all fields** before submitting for review
+- **Include detailed justifications** to speed up approval
+- **Verify assembly quorum** numbers are accurate
+- **Ensure president approval** before CPA submission
+
+### Communication
+
+- **Add comments** when changing project status
+- **Respond promptly** to observations
+- **Keep documentation** of all communications
+- **Coordinate with CPA** on complex issues
+
+## Troubleshooting
+
+### Cannot Create Project
+
+**Issue**: "No hay período vigente" message appears
+
+**Solution**: 
+- Verify with your administrator that an active period exists
+- Check that the period dates include today's date
+- Contact system administrator to create a new period if needed
+
+### Document Upload Fails
+
+**Issue**: File upload doesn't complete or shows error
+
+**Solution**:
+- Ensure file is PDF format
+- Check file size is under the limit (typically 10MB)
+- Verify you have stable internet connection
+- Try a different browser if issue persists
+
+### Cannot Submit to CPA
+
+**Issue**: Option to submit to CPA review is disabled
+
+**Solution**:
+- Verify project is in "Revisión Interna" status
+- Confirm you have `presidente` or `directorio` role
+- Ensure all required documents are uploaded
+
+### Expense Not Appearing
+
+**Issue**: Created rendición doesn't show in project
+
+**Solution**:
+- Refresh the page
+- Verify you selected the correct project
+- Check that the rendición was successfully created (look for confirmation message)
+- Contact support if issue persists
+
+## Getting Help
+
+If you encounter issues not covered in this guide:
+
+1. Check the dashboard alerts for system messages
+2. Review the project history for status change information
+3. Contact your CPA reviewer for approval-related questions
+4. Contact system administrator for technical issues

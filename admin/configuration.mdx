@@ -1,0 +1,302 @@
+---
+title: Configuration
+description: Configure Auditoriapp settings, environment variables, and application parameters
+---
+
+## Environment Variables
+
+Auditoriapp uses environment variables for configuration. Create a `.env` file in your backend directory with the following variables:
+
+### Core Settings
+
+```bash
+# Django Core
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,yourdomain.com
+
+# Application
+DJANGO_SETTINGS_MODULE=auditoriapp.settings
+```
+
+<Warning>
+Never commit your `.env` file to version control. Always use a strong, unique `SECRET_KEY` in production.
+</Warning>
+
+### Database Configuration
+
+<CodeGroup>
+```bash SQLite (Development)
+DATABASE_ENGINE=django.db.backends.sqlite3
+DATABASE_NAME=db.sqlite3
+```
+
+```bash MySQL (Production)
+DATABASE_ENGINE=django.db.backends.mysql
+DATABASE_NAME=auditoriapp
+DATABASE_USER=your_db_user
+DATABASE_PASSWORD=your_db_password
+DATABASE_HOST=localhost
+DATABASE_PORT=3306
+```
+
+```bash PostgreSQL
+DATABASE_ENGINE=django.db.backends.postgresql
+DATABASE_NAME=auditoriapp
+DATABASE_USER=your_db_user
+DATABASE_PASSWORD=your_db_password
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+```
+</CodeGroup>
+
+### JWT Authentication Settings
+
+Configure JSON Web Token settings for API authentication:
+
+```bash
+ACCESS_TOKEN_LIFETIME=60  # minutes
+REFRESH_TOKEN_LIFETIME=7  # days
+```
+
+These correspond to the settings in `backend/auditoriapp/settings.py:163-170`:
+
+```python
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+}
+```
+
+### CORS Configuration
+
+Configure Cross-Origin Resource Sharing for frontend access:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://yourdomain.com
+```
+
+Default configuration in `backend/auditoriapp/settings.py:141-144`:
+
+```python
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+```
+
+<Note>
+For production, replace `CORS_ALLOW_ALL_ORIGINS = True` with specific origins for security.
+</Note>
+
+### Static and Media Files
+
+```bash
+STATIC_URL=/static/
+STATIC_ROOT=/path/to/staticfiles
+MEDIA_URL=/media/
+MEDIA_ROOT=/path/to/media
+```
+
+Configured in `backend/auditoriapp/settings.py:129-134`:
+
+```python
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
+
+### Celery & Redis (Background Tasks)
+
+For asynchronous task processing:
+
+```bash
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+```
+
+## Application Settings
+
+### Installed Apps
+
+The following Django apps are configured in `backend/auditoriapp/settings.py:28-51`:
+
+**Core Modules:**
+- `dashboard` - Main dashboard functionality
+- `comunidades` - Community management
+- `proyectos` - Project management
+- `finanzas` - Financial operations
+- `beneficiarios` - Beneficiary management
+- `documentos` - Document handling
+- `reportes` - Report generation
+- `usuarios` - User management
+- `rendiciones` - Rendering/submissions
+- `periodos` - Period management
+- `auditores` - Auditor management
+- `socios` - Partner management
+
+**Third-Party Apps:**
+- `rest_framework` - Django REST Framework
+- `corsheaders` - CORS handling
+- `drf_spectacular` - API documentation
+
+### Authentication
+
+Custom user model is configured in `backend/auditoriapp/settings.py:114`:
+
+```python
+AUTH_USER_MODEL = 'usuarios.CustomUser'
+```
+
+### REST Framework Settings
+
+Configured in `backend/auditoriapp/settings.py:146-154`:
+
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+```
+
+<Warning>
+`AllowAny` permission is set for development. Update to appropriate permissions for production.
+</Warning>
+
+### API Documentation
+
+Configured using drf-spectacular in `backend/auditoriapp/settings.py:156-161`:
+
+```python
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Auditoriapp API',
+    'DESCRIPTION': 'Documentación de la API para el sistema SaaS de gestión de comunidades y auditoría.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+```
+
+## Frontend Configuration
+
+### Vite Configuration
+
+The frontend uses Vite with React and Tailwind CSS. Configuration in `frontend/vite.config.js:1-11`:
+
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
+```
+
+### API Base URL
+
+Configure the backend API endpoint in your frontend environment:
+
+```javascript
+const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:8000/api';
+```
+
+## Internationalization
+
+Configured in `backend/auditoriapp/settings.py:120-125`:
+
+```python
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+```
+
+<Note>
+Update `TIME_ZONE` to match your deployment region (e.g., "America/Santiago" for Chile).
+</Note>
+
+## Security Settings
+
+### Production Checklist
+
+<Steps>
+  <Step title="Set DEBUG to False">
+    ```python
+    DEBUG = False
+    ```
+  </Step>
+
+  <Step title="Use strong SECRET_KEY">
+    Generate a new secret key for production:
+    ```bash
+    python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+    ```
+  </Step>
+
+  <Step title="Configure ALLOWED_HOSTS">
+    ```python
+    ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']
+    ```
+  </Step>
+
+  <Step title="Set specific CORS origins">
+    Remove `CORS_ALLOW_ALL_ORIGINS = True` and specify:
+    ```python
+    CORS_ALLOWED_ORIGINS = [
+        "https://yourdomain.com",
+    ]
+    ```
+  </Step>
+
+  <Step title="Configure HTTPS settings">
+    ```python
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    ```
+  </Step>
+</Steps>
+
+## Database Configuration
+
+Update the database configuration in settings.py or via environment variables. Default configuration uses SQLite (`backend/auditoriapp/settings.py:88-93`):
+
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+```
+
+For MySQL production setup:
+
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST", "localhost"),
+        "PORT": os.getenv("DATABASE_PORT", "3306"),
+    }
+}
+```
+
+## Next Steps
+
+- [Manage users and roles](/admin/user-management)
+- [Deploy to production](/admin/deployment)

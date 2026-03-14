@@ -1,0 +1,417 @@
+---
+title: 'Authentication'
+description: 'JWT authentication implementation in Auditoriapp'
+---
+
+## Overview
+
+Auditoriapp uses JWT (JSON Web Token) authentication powered by `djangorestframework-simplejwt`. This provides a stateless authentication mechanism where tokens are issued upon successful login and must be included in subsequent requests.
+
+## Authentication Flow
+
+1. User submits credentials to obtain tokens
+2. Server validates credentials and returns access and refresh tokens
+3. Client includes access token in Authorization header for protected endpoints
+4. When access token expires, client uses refresh token to obtain new access token
+
+## Token Configuration
+
+The JWT implementation uses the following settings:
+
+- **Access Token Lifetime**: 60 minutes
+- **Refresh Token Lifetime**: 7 days
+- **Algorithm**: HS256
+- **Token Rotation**: Enabled (new refresh token issued on refresh)
+- **Blacklist After Rotation**: Enabled (old tokens are invalidated)
+
+## Endpoints
+
+### Obtain Token Pair
+
+Get access and refresh tokens by providing valid credentials.
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:8000/api/token/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your_username",
+    "password": "your_password"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8000/api/token/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    username: 'your_username',
+    password: 'your_password'
+  })
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'http://localhost:8000/api/token/',
+    json={
+        'username': 'your_username',
+        'password': 'your_password'
+    }
+)
+
+data = response.json()
+```
+</CodeGroup>
+
+#### Request Body
+
+<ParamField body="username" type="string" required>
+  User's username
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+#### Response
+
+<ResponseField name="access" type="string">
+  JWT access token valid for 60 minutes
+</ResponseField>
+
+<ResponseField name="refresh" type="string">
+  JWT refresh token valid for 7 days
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  User information object
+  
+  <ResponseField name="user.id" type="string">
+    User's unique identifier (UUID)
+  </ResponseField>
+  
+  <ResponseField name="user.username" type="string">
+    Username
+  </ResponseField>
+  
+  <ResponseField name="user.nombre" type="string">
+    User's full name
+  </ResponseField>
+  
+  <ResponseField name="user.email" type="string">
+    User's email address
+  </ResponseField>
+  
+  <ResponseField name="user.rol" type="string">
+    User's role (admin, auditor, usuario, directorio, presidente, ito, cpa)
+  </ResponseField>
+  
+  <ResponseField name="user.comunidad" type="object" nullable>
+    Community information (null if user has no community)
+    
+    <ResponseField name="user.comunidad.id" type="string">
+      Community's unique identifier (UUID)
+    </ResponseField>
+    
+    <ResponseField name="user.comunidad.nombre" type="string">
+      Community name
+    </ResponseField>
+  </ResponseField>
+</ResponseField>
+
+#### Example Response
+
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "username": "admin",
+    "nombre": "Administrator",
+    "email": "admin@example.com",
+    "rol": "admin",
+    "comunidad": {
+      "id": "987fcdeb-51a2-43f1-b456-426614174111",
+      "nombre": "Comunidad Example"
+    }
+  }
+}
+```
+
+---
+
+### Refresh Access Token
+
+Obtain a new access token using a valid refresh token.
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:8000/api/token/refresh/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh": "your_refresh_token"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8000/api/token/refresh/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    refresh: 'your_refresh_token'
+  })
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'http://localhost:8000/api/token/refresh/',
+    json={
+        'refresh': 'your_refresh_token'
+    }
+)
+
+data = response.json()
+```
+</CodeGroup>
+
+#### Request Body
+
+<ParamField body="refresh" type="string" required>
+  Valid refresh token obtained from token endpoint
+</ParamField>
+
+#### Response
+
+<ResponseField name="access" type="string">
+  New JWT access token valid for 60 minutes
+</ResponseField>
+
+<ResponseField name="refresh" type="string">
+  New JWT refresh token valid for 7 days (token rotation enabled)
+</ResponseField>
+
+#### Example Response
+
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+<Note>
+  Due to token rotation being enabled, the old refresh token is blacklisted after a successful refresh. Always use the new refresh token returned in the response.
+</Note>
+
+---
+
+### Login (Alternative Endpoint)
+
+Alternative login endpoint with the same functionality as the token obtain endpoint.
+
+```bash
+POST /api/auth/login/
+```
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your_username",
+    "password": "your_password"
+  }'
+```
+</CodeGroup>
+
+This endpoint returns the same response format as `/api/token/`.
+
+---
+
+## Using Authentication
+
+### Include Token in Requests
+
+Once you have an access token, include it in the Authorization header of your requests:
+
+<CodeGroup>
+```bash cURL
+curl -X GET http://localhost:8000/api/auth/profile/ \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8000/api/auth/profile/', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${accessToken}`
+  }
+});
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': f'Bearer {access_token}'
+}
+
+response = requests.get(
+    'http://localhost:8000/api/auth/profile/',
+    headers=headers
+)
+```
+</CodeGroup>
+
+### Get User Profile
+
+Retrieve the authenticated user's profile information.
+
+```bash
+GET /api/auth/profile/
+```
+
+**Authentication Required**: Yes
+
+#### Response
+
+<ResponseField name="id" type="string">
+  User's unique identifier (UUID)
+</ResponseField>
+
+<ResponseField name="username" type="string">
+  Username
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  User's full name
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  User's email address
+</ResponseField>
+
+<ResponseField name="rol" type="string">
+  User's role
+</ResponseField>
+
+<ResponseField name="comunidad" type="string" nullable>
+  Community ID (UUID) or null
+</ResponseField>
+
+<ResponseField name="comunidad_nombre" type="string">
+  Community name
+</ResponseField>
+
+<ResponseField name="is_active" type="boolean">
+  Whether the user account is active
+</ResponseField>
+
+<ResponseField name="fondos_recibidos" type="number">
+  Total funds received (currently returns 0)
+</ResponseField>
+
+<ResponseField name="fondos_ejecutados" type="number">
+  Total funds executed (currently returns 0)
+</ResponseField>
+
+<ResponseField name="saldo_restante" type="number">
+  Remaining balance (currently returns 0)
+</ResponseField>
+
+<ResponseField name="proyectos_en_ejecucion" type="number">
+  Number of projects in execution (currently returns 0)
+</ResponseField>
+
+---
+
+## User Roles
+
+The system supports the following user roles:
+
+| Role | Value | Description |
+|------|-------|-------------|
+| Admin | `admin` | System administrator |
+| Auditor | `auditor` | External auditor |
+| Usuario | `usuario` | Standard user |
+| Directorio Comunidad | `directorio` | Community board member |
+| Presidente Comunidad | `presidente` | Community president |
+| ITO / Responsable | `ito` | Technical inspection officer |
+| CPA Revisor | `cpa` | Certified public accountant |
+
+## Error Handling
+
+### Invalid Credentials
+
+```json
+{
+  "error": "Credenciales inválidas"
+}
+```
+
+**Status Code**: 401 Unauthorized
+
+### Missing Fields
+
+```json
+{
+  "error": "Username y password son requeridos"
+}
+```
+
+**Status Code**: 400 Bad Request
+
+### Invalid or Expired Token
+
+```json
+{
+  "detail": "Given token not valid for any token type",
+  "code": "token_not_valid",
+  "messages": [
+    {
+      "token_class": "AccessToken",
+      "token_type": "access",
+      "message": "Token is invalid or expired"
+    }
+  ]
+}
+```
+
+**Status Code**: 401 Unauthorized
+
+## Security Best Practices
+
+<Warning>
+  Never expose your JWT tokens in client-side code or version control. Store them securely (e.g., httpOnly cookies or secure storage).
+</Warning>
+
+1. **Secure Storage**: Store tokens in httpOnly cookies or secure storage, never in localStorage
+2. **HTTPS Only**: Always use HTTPS in production to prevent token interception
+3. **Token Refresh**: Implement automatic token refresh before access token expires
+4. **Logout**: When implementing logout, discard both access and refresh tokens
+5. **Token Validation**: Always validate tokens on the server before processing requests
+
+## Custom User Model
+
+Auditoriapp uses a custom user model (`CustomUser`) that extends Django's `AbstractUser` with additional fields:
+
+- `nombre` - Full name
+- `comunidad` - Foreign key to Community
+- `rol` - User role from predefined choices
+- `telefono` - Phone number
+- `es_auditor` - Boolean flag for auditor status

@@ -1,0 +1,364 @@
+---
+title: User Management
+description: Manage users, roles, and permissions in Auditoriapp
+---
+
+## User Model
+
+Auditoriapp uses a custom user model that extends Django's `AbstractUser`. The model is defined in `backend/usuarios/models.py:4-24`.
+
+### CustomUser Model
+
+```python
+class CustomUser(AbstractUser):
+    nombre = models.CharField(max_length=100, blank=True)
+    comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE, null=True, blank=True)
+    rol = models.CharField(max_length=20, choices=[
+        ('admin', 'Admin'),
+        ('auditor', 'Auditor'),
+        ('usuario', 'Usuario'),
+        ('directorio', 'Directorio Comunidad'),
+        ('presidente', 'Presidente Comunidad'),
+        ('ito', 'ITO / Responsable'),
+        ('cpa', 'CPA Revisor')
+    ], default='usuario')
+    telefono = models.CharField(max_length=20, blank=True)
+    es_auditor = models.BooleanField(default=False)
+```
+
+### User Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `username` | String | Unique username (inherited from AbstractUser) |
+| `email` | String | User email address |
+| `nombre` | String | Full name of the user |
+| `comunidad` | ForeignKey | Associated community (optional) |
+| `rol` | String | User role (see roles below) |
+| `telefono` | String | Phone number |
+| `es_auditor` | Boolean | Flag indicating if user is an auditor |
+| `is_active` | Boolean | Account active status |
+| `is_staff` | Boolean | Django admin access |
+| `is_superuser` | Boolean | Superuser privileges |
+
+## User Roles
+
+Auditoriapp supports multiple user roles with different permission levels:
+
+<CardGroup cols={2}>
+  <Card title="Admin" icon="user-shield">
+    Full system access and administrative privileges
+  </Card>
+  
+  <Card title="Auditor" icon="clipboard-check">
+    Can perform audit operations and review submissions
+  </Card>
+  
+  <Card title="Usuario" icon="user">
+    Standard user with basic access
+  </Card>
+  
+  <Card title="Directorio Comunidad" icon="building">
+    Community board member with community management access
+  </Card>
+  
+  <Card title="Presidente Comunidad" icon="crown">
+    Community president with elevated community permissions
+  </Card>
+  
+  <Card title="ITO / Responsable" icon="user-tie">
+    Technical responsible person for projects
+  </Card>
+  
+  <Card title="CPA Revisor" icon="file-invoice">
+    Certified Public Accountant reviewer
+  </Card>
+</CardGroup>
+
+## Creating Users
+
+### Via Django Admin
+
+<Steps>
+  <Step title="Access Django Admin">
+    Navigate to `http://localhost:8000/admin` and log in with superuser credentials
+  </Step>
+
+  <Step title="Navigate to Users">
+    Click on "Custom users" under the "USUARIOS" section
+  </Step>
+
+  <Step title="Add new user">
+    Click "Add Custom user" button and fill in:
+    - Username (required)
+    - Password (required)
+    - Email
+    - Name (nombre)
+    - Role (rol)
+    - Community (comunidad)
+    - Phone number (telefono)
+    - Auditor flag (es_auditor)
+  </Step>
+
+  <Step title="Set permissions">
+    Configure:
+    - Active status
+    - Staff status (for admin access)
+    - Superuser status (for full privileges)
+  </Step>
+
+  <Step title="Save">
+    Click "Save" to create the user
+  </Step>
+</Steps>
+
+### Via Management Command
+
+Create a superuser using Django's management command:
+
+```bash
+python manage.py createsuperuser
+```
+
+Follow the prompts to enter username, email, and password.
+
+### Using Default Admin Script
+
+Auditoriapp includes a script to create a default admin user (`backend/create_admin_user.py:1-34`):
+
+```bash
+python create_admin_user.py
+```
+
+This creates:
+- **Username:** `admin`
+- **Password:** `admin123`
+- **Email:** `admin@admin.cl`
+- **Role:** Admin Consejo
+
+<Warning>
+Change the default admin password immediately after first login in production environments.
+</Warning>
+
+### Via API
+
+Create users programmatically using the REST API:
+
+```bash
+curl -X POST http://localhost:8000/api/usuarios/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "username": "newuser",
+    "email": "user@example.com",
+    "password": "securepassword",
+    "nombre": "New User",
+    "rol": "usuario",
+    "telefono": "+56912345678"
+  }'
+```
+
+## User Admin Interface
+
+The CustomUser admin is configured in `backend/usuarios/admin.py:5-16`:
+
+```python
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = ('username', 'email', 'rol', 'telefono', 'es_auditor', 
+                    'is_active', 'is_staff', 'is_superuser', 'comunidad')
+    search_fields = ('username', 'email', 'rol', 'telefono')
+    fieldsets = UserAdmin.fieldsets + (
+        (None, {'fields': ('comunidad', 'rol', 'telefono', 'es_auditor')}),
+    )
+```
+
+### Admin Features
+
+- **List View:** Displays username, email, role, phone, auditor status, and permissions
+- **Search:** Search by username, email, role, or phone number
+- **Filters:** Filter by role, community, active status
+- **Bulk Actions:** Activate/deactivate multiple users
+
+## Authentication
+
+Auditoriapp uses JWT (JSON Web Tokens) for authentication.
+
+### Obtaining Tokens
+
+<CodeGroup>
+```bash Request
+curl -X POST http://localhost:8000/api/token/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "admin123"
+  }'
+```
+
+```json Response
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+</CodeGroup>
+
+### Token Lifetime
+
+Configured in `backend/auditoriapp/settings.py:163-170`:
+
+- **Access Token:** 60 minutes
+- **Refresh Token:** 7 days
+- **Token Rotation:** Enabled
+- **Blacklist After Rotation:** Enabled
+
+### Refreshing Tokens
+
+```bash
+curl -X POST http://localhost:8000/api/token/refresh/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+  }'
+```
+
+## Permission Management
+
+### Permission Classes
+
+Default permission in `backend/auditoriapp/settings.py:150-152`:
+
+```python
+'DEFAULT_PERMISSION_CLASSES': (
+    'rest_framework.permissions.AllowAny',
+)
+```
+
+<Warning>
+For production, implement proper permission classes based on user roles.
+</Warning>
+
+### Custom Permissions
+
+Implement role-based permissions by creating custom permission classes:
+
+```python
+from rest_framework import permissions
+
+class IsAdminOrAuditor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.rol in ['admin', 'auditor']
+
+class IsCommunityPresident(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.rol == 'presidente'
+```
+
+## User Operations
+
+### Updating User Information
+
+<Tabs>
+  <Tab title="Django Admin">
+    1. Navigate to the user list in Django admin
+    2. Click on the username to edit
+    3. Update fields as needed
+    4. Click "Save"
+  </Tab>
+  
+  <Tab title="API">
+    ```bash
+    curl -X PATCH http://localhost:8000/api/usuarios/{id}/ \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+      -d '{
+        "nombre": "Updated Name",
+        "telefono": "+56987654321"
+      }'
+    ```
+  </Tab>
+  
+  <Tab title="Management Command">
+    ```python
+    from usuarios.models import CustomUser
+    
+    user = CustomUser.objects.get(username='username')
+    user.nombre = 'Updated Name'
+    user.save()
+    ```
+  </Tab>
+</Tabs>
+
+### Deactivating Users
+
+Instead of deleting users, deactivate them to preserve data integrity:
+
+```python
+user = CustomUser.objects.get(username='username')
+user.is_active = False
+user.save()
+```
+
+### Resetting Passwords
+
+<Steps>
+  <Step title="Via Django Admin">
+    Click on the user and select "this form" next to the password field
+  </Step>
+
+  <Step title="Via Management Command">
+    ```bash
+    python manage.py changepassword username
+    ```
+  </Step>
+
+  <Step title="Programmatically">
+    ```python
+    user = CustomUser.objects.get(username='username')
+    user.set_password('newpassword')
+    user.save()
+    ```
+  </Step>
+</Steps>
+
+## Multi-Tenancy
+
+Users can be associated with specific communities through the `comunidad` field:
+
+```python
+from comunidades.models import Comunidad
+from usuarios.models import CustomUser
+
+# Assign user to community
+comunidad = Comunidad.objects.get(id=1)
+user = CustomUser.objects.get(username='username')
+user.comunidad = comunidad
+user.save()
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Strong Passwords" icon="lock">
+    Enforce password policies using Django's password validators
+  </Card>
+  
+  <Card title="Regular Audits" icon="magnifying-glass">
+    Periodically review user accounts and permissions
+  </Card>
+  
+  <Card title="Principle of Least Privilege" icon="shield">
+    Grant users only the permissions they need
+  </Card>
+  
+  <Card title="Deactivate Instead of Delete" icon="user-slash">
+    Preserve data integrity by deactivating inactive users
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+- [Configure application settings](/admin/configuration)
+- [Deploy to production](/admin/deployment)

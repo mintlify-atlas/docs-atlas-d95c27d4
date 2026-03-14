@@ -1,80 +1,275 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quickstart Guide"
+description: "Get Auditoriapp running locally and create your first project in minutes"
 ---
 
-## Get started in three steps
+This guide will walk you through setting up Auditoriapp locally, logging in, creating your first budget period, and submitting your first project for approval.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, ensure you have the following installed:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+- **Python 3.8+** and pip
+- **Node.js 16+** and npm
+- **PostgreSQL** or **MySQL** (or use SQLite for testing)
+- **Git**
+
+## Setup Backend
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/cristiangodoyangel/auditoriapp.git
+    cd auditoriapp/backend
+    ```
+  </Step>
+
+  <Step title="Create virtual environment">
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    pip install -r requirements.txt
+    ```
+  </Step>
+
+  <Step title="Configure environment">
+    Create a `.env` file in the `backend/` directory:
+
+    ```bash .env
+    SECRET_KEY=your-secret-key-here
+    DEBUG=True
+    ALLOWED_HOSTS=*
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    DB_NAME=auditoria_db
+    DB_USER=admin
+    DB_PASSWORD=password
+    DB_HOST=localhost
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    JWT_ACCESS_TOKEN_LIFETIME=60
+    JWT_REFRESH_TOKEN_LIFETIME=1440
+    ```
+  </Step>
 
-### Step 2: Deploy your changes
+  <Step title="Run migrations">
+    ```bash
+    python manage.py migrate
+    ```
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Step title="Create admin user">
+    ```bash
+    python create_admin_user.py
+    ```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    This creates an admin user with credentials:
+    - **Username**: `admin`
+    - **Password**: `admin123`
+    - **Role**: `admin`
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Start the backend server">
+    ```bash
+    python manage.py runserver
+    ```
 
-### Step 3: Go live
+    The API will be available at `http://localhost:8000`
+  </Step>
+</Steps>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Setup Frontend
 
-## Next steps
+<Steps>
+  <Step title="Navigate to frontend directory">
+    ```bash
+    cd ../frontend
+    ```
+  </Step>
 
-Now that you have your docs running, explore these key features:
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
 
-<CardGroup cols={2}>
+  <Step title="Start development server">
+    ```bash
+    npm run dev
+    ```
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+    The frontend will be available at `http://localhost:5173`
+  </Step>
+</Steps>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+## First Login
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+<Steps>
+  <Step title="Open the application">
+    Navigate to `http://localhost:5173` in your browser.
+  </Step>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+  <Step title="Log in with admin credentials">
+    - **Username**: `admin`
+    - **Password**: `admin123`
 
-</CardGroup>
+    The system will issue a JWT access token (valid for 60 minutes) and store it in localStorage.
+  </Step>
+
+  <Step title="Verify dashboard access">
+    After login, you should see the main dashboard with KPI cards showing:
+    - Total budget
+    - Total expenses
+    - Budget execution percentage
+    - Available balance
+  </Step>
+</Steps>
+
+## Create Your First Period
+
+Budget periods organize funding into discrete time frames with allocated budgets.
+
+<Steps>
+  <Step title="Navigate to Periods">
+    Click **Periodos** in the sidebar navigation.
+  </Step>
+
+  <Step title="Create new period">
+    Click **Crear Periodo** and fill in the form:
+
+    - **Name**: "Q1 2024"
+    - **Start Date**: 2024-01-01
+    - **End Date**: 2024-03-31
+    - **Allocated Budget**: 50000000 (50 million Chilean pesos)
+    - **Community**: Select your community from the dropdown
+  </Step>
+
+  <Step title="Save the period">
+    Click **Guardar**. The period will be created and marked as active.
+  </Step>
+</Steps>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Only one period can be active at a time per community. When you close a period, the remaining balance automatically transfers to the next period.
 </Note>
+
+## Create Your First Project
+
+<Steps>
+  <Step title="Navigate to Projects">
+    Click **Proyectos** in the sidebar.
+  </Step>
+
+  <Step title="Click Create Project">
+    Click **Crear Proyecto** to open the project creation form.
+  </Step>
+
+  <Step title="Fill in basic information">
+    - **Project Name**: "Community Center Renovation"
+    - **Description**: "Renovate the community center main hall"
+    - **Start Date**: 2024-02-01
+    - **End Date**: 2024-03-15
+    - **Total Budget**: 10000000 (10 million pesos)
+    - **Period**: Select "Q1 2024"
+  </Step>
+
+  <Step title="Add strategic information">
+    - **Objectives**: "Improve community facilities and provide a safe gathering space"
+    - **Justification**: "The current hall is deteriorating and poses safety risks"
+    - **Estimated Beneficiaries**: 500
+  </Step>
+
+  <Step title="Upload required documents">
+    Projects require three documents:
+    - **Assembly Minutes (Acta)**: Meeting minutes approving the project
+    - **Quotations (Cotizaciones)**: At least 3 price quotes from vendors
+    - **Selected Quote (Elegido)**: The chosen vendor's final quote
+
+    Upload each document using the file upload fields.
+  </Step>
+
+  <Step title="Add governance information">
+    - **Assembly Quorum**: 45 (number of members present at approval meeting)
+    - **Presidential Approval**: Check the box to indicate the president has signed off
+  </Step>
+
+  <Step title="Save the project">
+    Click **Guardar**. The project will be created in **Borrador** (Draft) status.
+  </Step>
+</Steps>
+
+## Submit for Approval
+
+<Steps>
+  <Step title="Review the project">
+    Verify all information is correct on the project detail page.
+  </Step>
+
+  <Step title="Change status to Internal Review">
+    Click **Cambiar Estado** and select **En Revisión Interna**.
+
+    This notifies the community directorate (Directorio/Presidente roles) that the project is ready for review.
+  </Step>
+
+  <Step title="Community approval">
+    Users with **Presidente** or **Directorio** roles can now review and approve the project, moving it to **En Revisión CPA**.
+  </Step>
+
+  <Step title="CPA approval">
+    A user with the **CPA** role reviews the project and either:
+    - Approves it → status changes to **Aprobado**
+    - Requests observations → status changes to **Con Observaciones**
+  </Step>
+
+  <Step title="Begin execution">
+    Once approved, change the status to **En Ejecución** to begin tracking expenses against this project.
+  </Step>
+</Steps>
+
+## Create Your First Expense Report
+
+<Steps>
+  <Step title="Navigate to Rendiciones">
+    Click **Rendiciones** in the sidebar.
+  </Step>
+
+  <Step title="Create new expense report">
+    Click **Crear Rendición** and fill in:
+
+    - **Project**: Select "Community Center Renovation"
+    - **Description**: "Paint and materials for main hall"
+    - **Amount**: 1500000 (1.5 million pesos)
+    - **Document Number**: "FC-12345" (invoice or receipt number)
+    - **Date**: 2024-02-15
+  </Step>
+
+  <Step title="Attach supporting documents">
+    Upload the invoice, receipt, or proof of purchase.
+  </Step>
+
+  <Step title="Submit for review">
+    The expense report is created with status **Pendiente** (Pending).
+
+    A CPA or Admin can now review and approve/reject it.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="User Guides" icon="book" href="/guides/community-admin">
+    Learn detailed workflows for Community Admins and Auditors
+  </Card>
+  <Card title="Core Features" icon="star" href="/features/multi-tenancy">
+    Explore multi-tenancy, RBAC, and audit workflows
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Integrate with the REST API
+  </Card>
+  <Card title="Deployment" icon="rocket" href="/admin/deployment">
+    Deploy Auditoriapp to production
+  </Card>
+</CardGroup>

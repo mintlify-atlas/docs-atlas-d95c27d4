@@ -1,0 +1,286 @@
+---
+title: 'Dashboard'
+description: 'Endpoints for dashboard analytics and KPIs'
+---
+
+## Dashboard Analytics
+
+### Get Dashboard KPIs
+
+<api method="GET" endpoint="/api/dashboard/kpis/" auth="bearer" />
+
+Retrieve comprehensive KPIs and analytics for the authenticated user's community.
+
+**Authentication Required:** Yes
+
+**Filtering:** All data is automatically filtered by the authenticated user's community.
+
+<ResponseExample>
+```json
+{
+  "periodo": {
+    "nombre": "Periodo 2024",
+    "monto_asignado": "1000000.00",
+    "fecha_inicio": "2024-01-01",
+    "fecha_fin": "2024-12-31"
+  },
+  "kpis": {
+    "total_proyectos": 15,
+    "proyectos_activos": 8,
+    "presupuesto_total": "3500000.00",
+    "total_pagado": "1250000.00",
+    "total_rendido": "1500000.00",
+    "total_rendido_aprobado": "1300000.00",
+    "porcentaje_ejecucion_fin": 35.71
+  },
+  "alertas": {
+    "rendiciones_observadas": 3,
+    "rendiciones_pendientes": 5,
+    "proyectos_atrasados": 2
+  },
+  "charts": {
+    "rendiciones": [
+      {
+        "name": "Aprobado",
+        "value": 12
+      },
+      {
+        "name": "Observado",
+        "value": 3
+      },
+      {
+        "name": "Pendiente",
+        "value": 5
+      },
+      {
+        "name": "Rechazado",
+        "value": 1
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
+
+## Response Structure
+
+### Periodo Object
+
+<ResponseField name="periodo.nombre" type="string">
+  Name of the current active period
+</ResponseField>
+
+<ResponseField name="periodo.monto_asignado" type="string">
+  Budget assigned to the current period (decimal)
+</ResponseField>
+
+<ResponseField name="periodo.fecha_inicio" type="string">
+  Period start date (YYYY-MM-DD)
+</ResponseField>
+
+<ResponseField name="periodo.fecha_fin" type="string">
+  Period end date (YYYY-MM-DD)
+</ResponseField>
+
+### KPIs Object
+
+<ResponseField name="kpis.total_proyectos" type="integer">
+  Total number of projects in the community
+</ResponseField>
+
+<ResponseField name="kpis.proyectos_activos" type="integer">
+  Number of projects currently in execution (`ejecucion` state)
+</ResponseField>
+
+<ResponseField name="kpis.presupuesto_total" type="string">
+  Sum of all project budgets (decimal)
+</ResponseField>
+
+<ResponseField name="kpis.total_pagado" type="string">
+  Total amount paid from expense submissions with `pagado` status (decimal)
+</ResponseField>
+
+<ResponseField name="kpis.total_rendido" type="string">
+  Total amount submitted in all expense submissions regardless of status (decimal)
+</ResponseField>
+
+<ResponseField name="kpis.total_rendido_aprobado" type="string">
+  Total amount from expense submissions with `aprobado` status (decimal)
+</ResponseField>
+
+<ResponseField name="kpis.porcentaje_ejecucion_fin" type="number">
+  Financial execution percentage: `(total_pagado / presupuesto_total) * 100`
+</ResponseField>
+
+### Alertas Object
+
+<ResponseField name="alertas.rendiciones_observadas" type="integer">
+  Number of expense submissions with observations (`observado` status)
+</ResponseField>
+
+<ResponseField name="alertas.rendiciones_pendientes" type="integer">
+  Number of expense submissions pending review (`pendiente` status)
+</ResponseField>
+
+<ResponseField name="alertas.proyectos_atrasados" type="integer">
+  Number of projects past their end date and not yet closed
+</ResponseField>
+
+### Charts Object
+
+<ResponseField name="charts.rendiciones" type="array">
+  Distribution of expense submissions by status for chart visualization
+</ResponseField>
+
+<ResponseField name="charts.rendiciones[].name" type="string">
+  Status name: `Aprobado`, `Observado`, `Pendiente`, or `Rechazado`
+</ResponseField>
+
+<ResponseField name="charts.rendiciones[].value" type="integer">
+  Count of expense submissions with this status
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/dashboard/kpis/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get(
+    'https://api.auditoriapp.com/api/dashboard/kpis/',
+    headers=headers
+)
+kpis = response.json()
+
+# Access specific metrics
+total_projects = kpis['kpis']['total_proyectos']
+execution_rate = kpis['kpis']['porcentaje_ejecucion_fin']
+alerts = kpis['alertas']['proyectos_atrasados']
+
+print(f"Total Projects: {total_projects}")
+print(f"Execution Rate: {execution_rate}%")
+print(f"Delayed Projects: {alerts}")
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.auditoriapp.com/api/dashboard/kpis/', {
+  headers: {
+    'Authorization': `Bearer ${accessToken}`
+  }
+});
+
+const data = await response.json();
+
+// Use in dashboard visualization
+const chartData = data.charts.rendiciones;
+const executionPercentage = data.kpis.porcentaje_ejecucion_fin;
+const pendingReviews = data.alertas.rendiciones_pendientes;
+```
+</CodeGroup>
+
+---
+
+### Get Dashboard Summary
+
+<api method="GET" endpoint="/api/dashboard/resumen/" auth="bearer" />
+
+Retrieve a basic dashboard summary (placeholder endpoint).
+
+**Authentication Required:** Yes
+
+<ResponseExample>
+```json
+{
+  "message": "Resumen endpoint"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/dashboard/resumen/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+## Use Cases
+
+### Financial Overview Dashboard
+
+Display total budget, spent amount, and execution rate:
+
+```python
+kpis_data = requests.get(
+    'https://api.auditoriapp.com/api/dashboard/kpis/',
+    headers={'Authorization': f'Bearer {token}'}
+).json()
+
+financial_summary = {
+    'budget': kpis_data['kpis']['presupuesto_total'],
+    'spent': kpis_data['kpis']['total_pagado'],
+    'execution_rate': kpis_data['kpis']['porcentaje_ejecucion_fin'],
+    'pending_approval': kpis_data['kpis']['total_rendido'] - kpis_data['kpis']['total_rendido_aprobado']
+}
+```
+
+### Alerts Widget
+
+Display pending actions and alerts:
+
+```python
+alertas = kpis_data['alertas']
+
+if alertas['proyectos_atrasados'] > 0:
+    print(f"⚠️ {alertas['proyectos_atrasados']} projects are delayed")
+
+if alertas['rendiciones_pendientes'] > 0:
+    print(f"📋 {alertas['rendiciones_pendientes']} expense submissions need review")
+
+if alertas['rendiciones_observadas'] > 0:
+    print(f"🔍 {alertas['rendiciones_observadas']} expense submissions have observations")
+```
+
+### Expense Status Chart
+
+Visualize expense submission distribution:
+
+```javascript
+const chartConfig = {
+  data: kpis.charts.rendiciones,
+  type: 'pie',
+  colors: {
+    'Aprobado': '#22c55e',
+    'Observado': '#eab308',
+    'Pendiente': '#3b82f6',
+    'Rechazado': '#ef4444'
+  }
+};
+```
+
+## Calculation Methods
+
+### Financial Execution Percentage
+
+```
+porcentaje_ejecucion_fin = (total_pagado / presupuesto_total) * 100
+```
+
+Only includes expenses with `pagado` status divided by the sum of all project budgets.
+
+### Delayed Projects
+
+Projects are considered delayed if:
+- `fecha_fin < today`
+- `estado NOT IN ['cierre', 'rechazado']`
+
+### Total Paid vs Total Submitted
+
+- **total_rendido**: Sum of all expense submissions regardless of status
+- **total_rendido_aprobado**: Sum of expense submissions with `aprobado` status
+- **total_pagado**: Sum of expense submissions with `pagado` status
+
+This distinction helps track the approval and payment pipeline.

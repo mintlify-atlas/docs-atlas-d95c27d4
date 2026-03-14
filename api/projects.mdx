@@ -1,0 +1,578 @@
+---
+title: 'Projects'
+description: 'Endpoints for managing projects and progress reports'
+---
+
+## Projects
+
+### List Projects
+
+<api method="GET" endpoint="/api/proyectos/" auth="bearer" />
+
+Retrieve all projects for the authenticated user's community.
+
+**Authentication Required:** Yes
+
+**Filtering:** Results are automatically filtered by the authenticated user's community.
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "comunidad": 1,
+    "periodo": 1,
+    "nombre": "Mejoramiento Plaza Central",
+    "descripcion": "Renovación completa de la plaza central del barrio",
+    "fecha_inicio": "2024-02-01",
+    "fecha_fin": "2024-06-30",
+    "presupuesto_total": "500000.00",
+    "estado": "ejecucion",
+    "total_rendido": "250000.00",
+    "estado_rendicion": "Pendiente",
+    "objetivos": "Mejorar espacios públicos",
+    "justificacion": "La plaza requiere mantenimiento urgente",
+    "beneficiarios_estimados": 500,
+    "quorum_asamblea": 45,
+    "firma_presidente": true,
+    "fecha_firma_presidente": "2024-01-25T14:30:00Z",
+    "acta_url": "https://api.auditoriapp.com/media/documentos/acta_1.pdf",
+    "cotizaciones_urls": [
+      "https://api.auditoriapp.com/media/documentos/cotizacion_1.pdf",
+      "https://api.auditoriapp.com/media/documentos/cotizacion_2.pdf"
+    ],
+    "elegido_url": "https://api.auditoriapp.com/media/documentos/cotizacion_elegida_1.pdf",
+    "ultimo_avance_fisico": 65
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Project unique identifier
+</ResponseField>
+
+<ResponseField name="comunidad" type="integer">
+  ID of the associated community
+</ResponseField>
+
+<ResponseField name="periodo" type="integer">
+  ID of the associated period
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Project name
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Detailed project description
+</ResponseField>
+
+<ResponseField name="fecha_inicio" type="string">
+  Project start date (YYYY-MM-DD)
+</ResponseField>
+
+<ResponseField name="fecha_fin" type="string">
+  Project end date (YYYY-MM-DD)
+</ResponseField>
+
+<ResponseField name="presupuesto_total" type="string">
+  Total project budget (decimal)
+</ResponseField>
+
+<ResponseField name="estado" type="string">
+  Project status: `borrador`, `revision_interna`, `revision_cpa`, `observaciones`, `aprobado`, `ejecucion`, `cierre`
+</ResponseField>
+
+<ResponseField name="total_rendido" type="string">
+  Total amount submitted for reimbursement (decimal)
+</ResponseField>
+
+<ResponseField name="quorum_asamblea" type="integer">
+  Number of assembly attendees
+</ResponseField>
+
+<ResponseField name="firma_presidente" type="boolean">
+  Whether the president has approved the project
+</ResponseField>
+
+<ResponseField name="acta_url" type="string">
+  URL to the assembly minutes document
+</ResponseField>
+
+<ResponseField name="cotizaciones_urls" type="array">
+  URLs to quotation documents
+</ResponseField>
+
+<ResponseField name="elegido_url" type="string">
+  URL to the selected quotation document
+</ResponseField>
+
+<ResponseField name="ultimo_avance_fisico" type="integer">
+  Latest physical progress percentage (0-100)
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/proyectos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get(
+    'https://api.auditoriapp.com/api/proyectos/',
+    headers=headers
+)
+proyectos = response.json()
+```
+</CodeGroup>
+
+---
+
+### Create Project
+
+<api method="POST" endpoint="/api/proyectos/" auth="bearer" />
+
+Create a new project. Documents should be uploaded first using the Documents API.
+
+**Authentication Required:** Yes
+
+<ParamField body="periodo" type="integer" required>
+  Period ID
+</ParamField>
+
+<ParamField body="nombre" type="string" required>
+  Project name
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Detailed description
+</ParamField>
+
+<ParamField body="fecha_inicio" type="string">
+  Start date (YYYY-MM-DD)
+</ParamField>
+
+<ParamField body="fecha_fin" type="string">
+  End date (YYYY-MM-DD)
+</ParamField>
+
+<ParamField body="presupuesto_total" type="string" default="0.00">
+  Total budget
+</ParamField>
+
+<ParamField body="objetivos" type="string">
+  Project objectives
+</ParamField>
+
+<ParamField body="justificacion" type="string">
+  Project justification
+</ParamField>
+
+<ParamField body="beneficiarios_estimados" type="integer" default="0">
+  Estimated number of beneficiaries
+</ParamField>
+
+<ParamField body="quorum_asamblea" type="integer" required>
+  Number of assembly attendees (must be > 0)
+</ParamField>
+
+<ParamField body="documentos_ids" type="array">
+  Array of document IDs to attach (uploaded via Documents API)
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 2,
+  "comunidad": 1,
+  "periodo": 1,
+  "nombre": "Nuevo Proyecto",
+  "descripcion": "Descripción del proyecto",
+  "fecha_inicio": "2024-04-01",
+  "fecha_fin": "2024-08-31",
+  "presupuesto_total": "750000.00",
+  "estado": "borrador",
+  "total_rendido": "0.00",
+  "estado_rendicion": "Pendiente",
+  "objetivos": "Objetivos del proyecto",
+  "justificacion": "Justificación",
+  "beneficiarios_estimados": 300,
+  "quorum_asamblea": 50,
+  "firma_presidente": false,
+  "fecha_firma_presidente": null,
+  "acta_url": "https://api.auditoriapp.com/media/documentos/acta_2.pdf",
+  "cotizaciones_urls": [],
+  "elegido_url": null,
+  "ultimo_avance_fisico": 0
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/proyectos/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "periodo": 1,
+    "nombre": "Nuevo Proyecto",
+    "descripcion": "Descripción del proyecto",
+    "fecha_inicio": "2024-04-01",
+    "fecha_fin": "2024-08-31",
+    "presupuesto_total": "750000.00",
+    "objetivos": "Mejorar infraestructura",
+    "justificacion": "Necesidad urgente",
+    "beneficiarios_estimados": 300,
+    "quorum_asamblea": 50,
+    "documentos_ids": [15, 16, 17]
+  }'
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'periodo': 1,
+    'nombre': 'Nuevo Proyecto',
+    'presupuesto_total': '750000.00',
+    'quorum_asamblea': 50,
+    'documentos_ids': [15, 16, 17]
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/proyectos/',
+    headers=headers,
+    json=data
+)
+proyecto = response.json()
+```
+</CodeGroup>
+
+---
+
+### Get Project Details
+
+<api method="GET" endpoint="/api/proyectos/{id}/" auth="bearer" />
+
+Retrieve details of a specific project.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Project ID
+</ParamField>
+
+---
+
+### Update Project
+
+<api method="PUT" endpoint="/api/proyectos/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/proyectos/{id}/" auth="bearer" />
+
+Update a project (PUT for full update, PATCH for partial).
+
+**Authentication Required:** Yes
+
+**Note:** The `estado` and `fecha_firma_presidente` fields are read-only and must be updated via specific actions.
+
+<ParamField path="id" type="integer" required>
+  Project ID
+</ParamField>
+
+---
+
+### Change Project Status
+
+<api method="POST" endpoint="/api/proyectos/{id}/cambiar_estado/" auth="bearer" />
+
+Change the project status with validation based on user role and current state.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Project ID
+</ParamField>
+
+<ParamField body="nuevo_estado" type="string" required>
+  New status: `borrador`, `revision_interna`, `revision_cpa`, `observaciones`, `aprobado`, `ejecucion`, `cierre`
+</ParamField>
+
+<ParamField body="comentario" type="string">
+  Optional comment about the status change
+</ParamField>
+
+**Status Transition Rules:**
+
+- **To `aprobado`**: Only CPA role can approve, project must be in `revision_cpa` state
+- **To `revision_interna`**: From `borrador` or `observaciones` states
+- **To `revision_cpa`**: Only Presidente or Directorio roles, from `revision_interna` state
+- **To `observaciones`**: Only CPA role can add observations
+
+<ResponseExample>
+```json
+{
+  "message": "Estado cambiado a aprobado",
+  "estado_anterior": "revision_cpa",
+  "estado_nuevo": "aprobado"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/proyectos/1/cambiar_estado/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nuevo_estado": "aprobado",
+    "comentario": "Proyecto aprobado sin observaciones"
+  }'
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'nuevo_estado': 'revision_cpa',
+    'comentario': 'Enviado a revisión CPA'
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/proyectos/1/cambiar_estado/',
+    headers=headers,
+    json=data
+)
+result = response.json()
+```
+</CodeGroup>
+
+---
+
+### Delete Project
+
+<api method="DELETE" endpoint="/api/proyectos/{id}/" auth="bearer" />
+
+Delete a project.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Project ID
+</ParamField>
+
+---
+
+## Progress Reports
+
+### List Progress Reports
+
+<api method="GET" endpoint="/api/reportes-avance/" auth="bearer" />
+
+Retrieve all progress reports for projects in the user's community.
+
+**Authentication Required:** Yes
+
+**Filtering:** Results are filtered by the authenticated user's community.
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "proyecto": 1,
+    "autor": "550e8400-e29b-41d4-a716-446655440000",
+    "fecha_reporte": "2024-03-14",
+    "porcentaje_avance": 65,
+    "observaciones": "Avance según cronograma. Completada la fase de excavación.",
+    "foto_avance": "/media/avances/foto_1.jpg",
+    "foto_url": "https://api.auditoriapp.com/media/avances/foto_1.jpg"
+  },
+  {
+    "id": 2,
+    "proyecto": 1,
+    "autor": "550e8400-e29b-41d4-a716-446655440000",
+    "fecha_reporte": "2024-02-15",
+    "porcentaje_avance": 30,
+    "observaciones": "Inicio de trabajos de excavación.",
+    "foto_avance": "/media/avances/foto_2.jpg",
+    "foto_url": "https://api.auditoriapp.com/media/avances/foto_2.jpg"
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Report unique identifier
+</ResponseField>
+
+<ResponseField name="proyecto" type="integer">
+  ID of the associated project
+</ResponseField>
+
+<ResponseField name="autor" type="string">
+  User ID who created the report
+</ResponseField>
+
+<ResponseField name="fecha_reporte" type="string">
+  Report date (auto-generated, YYYY-MM-DD)
+</ResponseField>
+
+<ResponseField name="porcentaje_avance" type="integer">
+  Physical progress percentage (0-100)
+</ResponseField>
+
+<ResponseField name="observaciones" type="string">
+  Progress observations and notes
+</ResponseField>
+
+<ResponseField name="foto_avance" type="string">
+  File path to progress photo
+</ResponseField>
+
+<ResponseField name="foto_url" type="string">
+  Full URL to progress photo
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/reportes-avance/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+---
+
+### Create Progress Report
+
+<api method="POST" endpoint="/api/reportes-avance/" auth="bearer" />
+
+Create a new progress report. Only ITO and Admin roles can create reports.
+
+**Authentication Required:** Yes (ITO or Admin role)
+
+<ParamField body="proyecto" type="integer" required>
+  Project ID
+</ParamField>
+
+<ParamField body="porcentaje_avance" type="integer" required>
+  Physical progress percentage (0-100)
+</ParamField>
+
+<ParamField body="observaciones" type="string" required>
+  Progress observations and details
+</ParamField>
+
+<ParamField body="foto_avance" type="file">
+  Progress photo (image file)
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 3,
+  "proyecto": 1,
+  "autor": "550e8400-e29b-41d4-a716-446655440000",
+  "fecha_reporte": "2024-03-14",
+  "porcentaje_avance": 75,
+  "observaciones": "Completada instalación de estructuras.",
+  "foto_avance": "/media/avances/foto_3.jpg",
+  "foto_url": "https://api.auditoriapp.com/media/avances/foto_3.jpg"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/reportes-avance/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "proyecto=1" \
+  -F "porcentaje_avance=75" \
+  -F "observaciones=Completada instalación de estructuras" \
+  -F "foto_avance=@/path/to/photo.jpg"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'proyecto': 1,
+    'porcentaje_avance': 75,
+    'observaciones': 'Completada instalación de estructuras'
+}
+files = {
+    'foto_avance': open('photo.jpg', 'rb')
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/reportes-avance/',
+    headers=headers,
+    data=data,
+    files=files
+)
+reporte = response.json()
+```
+</CodeGroup>
+
+---
+
+### Get Progress Report Details
+
+<api method="GET" endpoint="/api/reportes-avance/{id}/" auth="bearer" />
+
+Retrieve details of a specific progress report.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Report ID
+</ParamField>
+
+---
+
+### Update Progress Report
+
+<api method="PUT" endpoint="/api/reportes-avance/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/reportes-avance/{id}/" auth="bearer" />
+
+Update a progress report.
+
+**Authentication Required:** Yes
+
+**Note:** `fecha_reporte` and `autor` are read-only.
+
+<ParamField path="id" type="integer" required>
+  Report ID
+</ParamField>
+
+---
+
+### Delete Progress Report
+
+<api method="DELETE" endpoint="/api/reportes-avance/{id}/" auth="bearer" />
+
+Delete a progress report.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Report ID
+</ParamField>
+
+## Project States
+
+| State | Description |
+|-------|-------------|
+| `borrador` | Draft - Initial creation |
+| `revision_interna` | Internal review by community |
+| `revision_cpa` | CPA review |
+| `observaciones` | Has observations from CPA |
+| `aprobado` | Approved by CPA |
+| `ejecucion` | In execution |
+| `cierre` | Closed |

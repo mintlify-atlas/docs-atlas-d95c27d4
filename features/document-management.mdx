@@ -1,0 +1,525 @@
+---
+title: 'Document Management'
+description: 'File upload, organization, and attachment system for projects and expense reports'
+icon: 'folder'
+---
+
+## Overview
+
+Auditoriapp includes a comprehensive document management system that handles file uploads, organization, and attachment to projects and expense reports. The system supports various document types and ensures proper categorization for audit purposes.
+
+## Document Model
+
+The core `Documento` model stores all uploaded files:
+
+```python
+class Documento(models.Model):
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.SET_NULL, 
+                                  null=True, blank=True)
+    nombre = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=50)
+    archivo = models.FileField(upload_to='documentos/')
+    descripcion = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Documento {self.nombre} - {self.tipo}"
+```
+
+### Key Fields
+
+<ParamField path="fecha_subida" type="DateTime">
+  Automatically set when document is uploaded
+</ParamField>
+
+<ParamField path="proyecto" type="ForeignKey">
+  Optional link to a specific project. Can be null for general community documents.
+</ParamField>
+
+<ParamField path="nombre" type="String">
+  User-friendly name for the document
+</ParamField>
+
+<ParamField path="tipo" type="String">
+  Document category (e.g., "acta", "cotizacion", "factura", "contrato")
+</ParamField>
+
+<ParamField path="archivo" type="File">
+  The actual uploaded file, stored in `media/documentos/`
+</ParamField>
+
+<ParamField path="descripcion" type="Text">
+  Optional additional context about the document
+</ParamField>
+
+## Document Types
+
+Common document types in the system:
+
+<CardGroup cols={2}>
+  <Card title="Acta" icon="file-signature">
+    Assembly meeting minutes documenting project approval
+  </Card>
+  <Card title="Cotización" icon="file-invoice-dollar">
+    Price quotes from vendors for project materials/services
+  </Card>
+  <Card title="Factura" icon="receipt">
+    Invoices for actual purchases and expenses
+  </Card>
+  <Card title="Boleta" icon="receipt">
+    Receipts for smaller purchases
+  </Card>
+  <Card title="Contrato" icon="file-contract">
+    Contracts with vendors or service providers
+  </Card>
+  <Card title="Comprobante" icon="money-check">
+    Payment transfer proofs
+  </Card>
+  <Card title="Foto Avance" icon="camera">
+    Progress photos from site visits
+  </Card>
+  <Card title="Informe" icon="file-lines">
+    Technical or financial reports
+  </Card>
+</CardGroup>
+
+## File Upload Configuration
+
+### Media Settings
+
+Django media configuration in `settings.py`:
+
+```python
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
+
+### Storage Structure
+
+Files are organized by type:
+
+```
+media/
+├── documentos/          # General documents
+├── avances/             # Progress photos
+└── comprobantes_pago/   # Payment proofs
+```
+
+## Relationships
+
+### Project Documents
+
+Documents can be directly linked to projects:
+
+```python
+class Proyecto(models.Model):
+    # ... other fields
+    
+    # Access documents via reverse relationship
+    # proyecto.documento_set.all()
+```
+
+**Query Example:**
+```python
+# Get all documents for a project
+proyecto = Proyecto.objects.get(id=1)
+documentos = proyecto.documento_set.all()
+
+# Filter by type
+actas = proyecto.documento_set.filter(tipo='acta')
+cotizaciones = proyecto.documento_set.filter(tipo='cotizacion')
+```
+
+### Expense Report Attachments
+
+Rendiciones use a ManyToMany relationship for multiple attachments:
+
+```python
+class Rendicion(models.Model):
+    # ... other fields
+    documentos_adjuntos = models.ManyToManyField(
+        'documentos.Documento', 
+        related_name='rendiciones_adjuntas', 
+        blank=True
+    )
+```
+
+**Usage Example:**
+```python
+# Attach documents to an expense report
+rendicion = Rendicion.objects.get(id=1)
+factura = Documento.objects.get(id=5)
+rendicion.documentos_adjuntos.add(factura)
+
+# Get all documents for a rendicion
+docs = rendicion.documentos_adjuntos.all()
+
+# Check which rendiciones use a document
+documento = Documento.objects.get(id=5)
+rendiciones = documento.rendiciones_adjuntas.all()
+```
+
+### Payment Proof Files
+
+Rendiciones also have a direct file field for payment proofs:
+
+```python
+class Rendicion(models.Model):
+    # ... other fields
+    comprobante_traspaso = models.FileField(
+        upload_to='comprobantes_pago/', 
+        null=True, 
+        blank=True, 
+        help_text="Comprobante de transferencia al proveedor"
+    )
+```
+
+<Info>
+This separate field ensures payment proofs are always easily accessible and clearly identified.
+</Info>
+
+## Upload-First Architecture
+
+Auditoriapp follows an "upload-first" pattern:
+
+<Steps>
+  <Step title="Upload Document">
+    User uploads file via the documents endpoint
+    ```python
+    POST /api/documentos/
+    # Returns document ID
+    ```
+  </Step>
+  
+  <Step title="Get Document ID">
+    Frontend receives the created document's ID
+    ```json
+    {
+      "id": 123,
+      "nombre": "acta_asamblea.pdf",
+      "tipo": "acta"
+    }
+    ```
+  </Step>
+  
+  <Step title="Associate with Project">
+    When creating/updating project, reference the document ID
+    ```python
+    PATCH /api/proyectos/1/
+    # Link document via proyecto field or ManyToMany
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+**Why Upload-First?** This pattern ensures files are safely stored before being referenced, preventing orphaned database records and improving error handling.
+</Warning>
+
+## Progress Photos
+
+Physical progress reports can include photos:
+
+```python
+class ReporteAvance(models.Model):
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, 
+                                 related_name='reportes_avance')
+    autor = models.ForeignKey('usuarios.CustomUser', on_delete=models.SET_NULL, 
+                              null=True)
+    fecha_reporte = models.DateField(auto_now_add=True)
+    
+    porcentaje_avance = models.PositiveIntegerField(
+        help_text="Porcentaje de avance físico (0-100)"
+    )
+    observaciones = models.TextField()
+    foto_avance = models.ImageField(upload_to='avances/', null=True, blank=True)
+```
+
+**Creating a progress report with photo:**
+```python
+POST /api/reportes-avance/
+Content-Type: multipart/form-data
+
+proyecto: 1
+porcentaje_avance: 45
+observaciones: Cimientos completados
+foto_avance: <image file>
+```
+
+## API Endpoints
+
+### Upload Document
+
+```http
+POST /api/documentos/
+Content-Type: multipart/form-data
+```
+
+**Request:**
+```
+archivo: <file>
+nombre: "Acta Asamblea Marzo 2026"
+tipo: "acta"
+proyecto: 1
+descripcion: "Aprobación proyecto mejoramiento plaza"
+```
+
+**Response:**
+```json
+{
+  "id": 42,
+  "nombre": "Acta Asamblea Marzo 2026",
+  "tipo": "acta",
+  "fecha_subida": "2026-03-14T10:30:00Z",
+  "proyecto": 1,
+  "archivo": "/media/documentos/acta_asamblea_marzo.pdf",
+  "descripcion": "Aprobación proyecto mejoramiento plaza"
+}
+```
+
+### List Project Documents
+
+```http
+GET /api/documentos/?proyecto=1
+```
+
+### Download Document
+
+```http
+GET /media/documentos/acta_asamblea_marzo.pdf
+```
+
+<Note>
+Media files are served through Django's development server in DEBUG mode. For production, configure a proper file server (nginx, S3, etc.).
+</Note>
+
+## Multi-Tenant Document Isolation
+
+Documents must respect community boundaries:
+
+```python
+class DocumentoViewSet(viewsets.ModelViewSet):
+    serializer_class = DocumentoSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            # Only return documents for projects in user's community
+            return Documento.objects.filter(
+                Q(proyecto__comunidad=user.comunidad) | 
+                Q(proyecto__isnull=True, comunidad=user.comunidad)
+            )
+        return Documento.objects.none()
+```
+
+<Warning>
+**Security Critical**: Always filter documents by community to prevent cross-tenant data access.
+</Warning>
+
+## File Validation
+
+### Recommended Validations
+
+<AccordionGroup>
+  <Accordion title="File Size Limits">
+    ```python
+    from django.core.validators import FileExtensionValidator
+    from django.core.exceptions import ValidationError
+    
+    def validate_file_size(file):
+        max_size_mb = 10
+        if file.size > max_size_mb * 1024 * 1024:
+            raise ValidationError(
+                f'File size cannot exceed {max_size_mb}MB'
+            )
+    
+    class Documento(models.Model):
+        archivo = models.FileField(
+            upload_to='documentos/',
+            validators=[validate_file_size]
+        )
+    ```
+  </Accordion>
+  
+  <Accordion title="File Type Restrictions">
+    ```python
+    from django.core.validators import FileExtensionValidator
+    
+    class Documento(models.Model):
+        archivo = models.FileField(
+            upload_to='documentos/',
+            validators=[
+                FileExtensionValidator(
+                    allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx']
+                )
+            ]
+        )
+    ```
+  </Accordion>
+  
+  <Accordion title="Virus Scanning">
+    ```python
+    # For production, integrate with ClamAV or similar
+    import clamd
+    
+    def scan_file(file):
+        cd = clamd.ClamdUnixSocket()
+        scan_result = cd.scan_stream(file.read())
+        file.seek(0)  # Reset file pointer
+        
+        if scan_result and 'FOUND' in str(scan_result):
+            raise ValidationError('File contains malware')
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Document Lifecycle
+
+### Typical Document Flow
+
+<Steps>
+  <Step title="Upload">
+    User uploads document through the API
+  </Step>
+  <Step title="Review">
+    CPA/Admin reviews document during project/rendicion approval
+  </Step>
+  <Step title="Archive">
+    Document remains accessible for audit purposes
+  </Step>
+  <Step title="Retention">
+    Documents retained per legal requirements (typically 5-10 years)
+  </Step>
+</Steps>
+
+### Deletion Policy
+
+<Warning>
+**Important**: Documents should generally NOT be deleted once associated with approved projects or expense reports due to audit requirements.
+</Warning>
+
+```python
+# Soft delete implementation
+class Documento(models.Model):
+    # ... other fields
+    activo = models.BooleanField(default=True)
+    fecha_eliminacion = models.DateTimeField(null=True, blank=True)
+    
+    def soft_delete(self):
+        self.activo = False
+        self.fecha_eliminacion = timezone.now()
+        self.save()
+```
+
+## Storage Options
+
+### Local File System (Development)
+
+```python
+# settings.py
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
+
+### Cloud Storage (Production)
+
+<Tabs>
+  <Tab title="Amazon S3">
+    ```python
+    # settings.py
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+    AWS_ACCESS_KEY_ID = 'your-access-key'
+    AWS_SECRET_ACCESS_KEY = 'your-secret-key'
+    AWS_STORAGE_BUCKET_NAME = 'auditoriapp-documents'
+    AWS_S3_REGION_NAME = 'us-east-1'
+    ```
+  </Tab>
+  
+  <Tab title="Google Cloud Storage">
+    ```python
+    # settings.py
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    
+    GS_BUCKET_NAME = 'auditoriapp-documents'
+    GS_PROJECT_ID = 'your-project-id'
+    ```
+  </Tab>
+  
+  <Tab title="Azure Blob Storage">
+    ```python
+    # settings.py
+    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+    
+    AZURE_ACCOUNT_NAME = 'your-account-name'
+    AZURE_ACCOUNT_KEY = 'your-account-key'
+    AZURE_CONTAINER = 'documents'
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Descriptive Names" icon="tag">
+    Use clear, descriptive document names that identify content and date
+  </Card>
+  <Card title="Proper Categorization" icon="folder-tree">
+    Always set the correct document type for easy filtering
+  </Card>
+  <Card title="Complete Metadata" icon="table">
+    Fill in description field with relevant context
+  </Card>
+  <Card title="Regular Backups" icon="cloud-arrow-up">
+    Backup document storage regularly, separate from database backups
+  </Card>
+</CardGroup>
+
+## Common Queries
+
+<Tabs>
+  <Tab title="Documents by Type">
+    ```python
+    # Get all invoices for a community
+    facturas = Documento.objects.filter(
+        proyecto__comunidad=user.comunidad,
+        tipo='factura'
+    ).order_by('-fecha_subida')
+    ```
+  </Tab>
+  
+  <Tab title="Unattached Documents">
+    ```python
+    # Find documents not linked to any project
+    sin_proyecto = Documento.objects.filter(
+        proyecto__isnull=True
+    )
+    ```
+  </Tab>
+  
+  <Tab title="Recent Uploads">
+    ```python
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Documents uploaded in last 7 days
+    recent = Documento.objects.filter(
+        fecha_subida__gte=timezone.now() - timedelta(days=7)
+    ).order_by('-fecha_subida')
+    ```
+  </Tab>
+</Tabs>
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Project Management" icon="folder-tree" href="/features/project-management">
+    See how documents are used in project workflows
+  </Card>
+  <Card title="Financial Tracking" icon="dollar-sign" href="/features/financial-tracking">
+    Learn about invoice and receipt requirements
+  </Card>
+  <Card title="Audit Workflow" icon="clipboard-check" href="/features/audit-workflow">
+    Understand documentation requirements for audits
+  </Card>
+</CardGroup>

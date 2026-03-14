@@ -1,0 +1,421 @@
+---
+title: 'Financial Tracking'
+description: 'Comprehensive expense tracking, budget monitoring, and financial reporting'
+icon: 'dollar-sign'
+---
+
+## Overview
+
+Auditoriapp provides robust financial tracking capabilities for community projects, including budget management, expense reports (rendiciones), and real-time financial monitoring. The system ensures transparency and accountability in public fund management.
+
+## Core Models
+
+### Rendicion (Expense Report)
+
+The `Rendicion` model tracks individual expenses against projects:
+
+```python
+class Rendicion(models.Model):
+    ESTADO_RENDICION = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('observado', 'Con Observaciones'),
+        ('rechazado', 'Rechazado'),
+        ('pagado', 'Pagado'),
+    ]
+
+    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.CASCADE)
+    descripcion = models.TextField(blank=True, null=True)
+    monto_rendido = models.DecimalField(max_digits=12, decimal_places=2)
+    numero_documento = models.CharField(max_length=50, blank=True, null=True, 
+                                        help_text="Número de factura o boleta")
+    fecha_rendicion = models.DateField()
+    documentos_adjuntos = models.ManyToManyField('documentos.Documento', 
+                                                   related_name='rendiciones_adjuntas', 
+                                                   blank=True)
+
+    # Review fields
+    estado = models.CharField(max_length=20, choices=ESTADO_RENDICION, default='pendiente')
+    observacion = models.TextField(blank=True, null=True, 
+                                    help_text="Observaciones del auditor/CPA")
+    revisor = models.ForeignKey('usuarios.CustomUser', on_delete=models.SET_NULL, 
+                                 null=True, blank=True, 
+                                 related_name='rendiciones_revisadas')
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+    comprobante_traspaso = models.FileField(upload_to='comprobantes_pago/', 
+                                             null=True, blank=True, 
+                                             help_text="Comprobante de transferencia al proveedor")
+
+    def __str__(self):
+        return f"Rendición {self.id} - {self.proyecto} ({self.estado})"
+```
+
+### Movimiento (Financial Movement)
+
+General financial movements for a community:
+
+```python
+class Movimiento(models.Model):
+    comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE)
+    periodo = models.ForeignKey('periodos.Periodo', on_delete=models.CASCADE)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    tipo = models.CharField(max_length=50)
+    fecha = models.DateField()
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return f"{self.comunidad} - {self.monto} - {self.tipo}"
+```
+
+## Expense Report States
+
+Expense reports flow through five states:
+
+<Steps>
+  <Step title="Pendiente (Pending)">
+    Newly submitted expense report awaiting review
+  </Step>
+  <Step title="Aprobado (Approved)">
+    CPA or admin has approved the expense as valid
+  </Step>
+  <Step title="Observado (With Observations)">
+    Issues identified that need to be corrected or explained
+  </Step>
+  <Step title="Rechazado (Rejected)">
+    Expense report rejected and will not be paid
+  </Step>
+  <Step title="Pagado (Paid)">
+    Payment has been transferred to the provider
+  </Step>
+</Steps>
+
+## Rendicion Review Workflow
+
+### Review Endpoint
+
+Only CPA and Admin roles can review expense reports:
+
+```python
+class RendicionViewSet(viewsets.ModelViewSet):
+    serializer_class = RendicionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['proyecto', 'estado']
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return Rendicion.objects.filter(proyecto__comunidad=user.comunidad)
+        return Rendicion.objects.none()
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=True, methods=['post'])
+    def revisar(self, request, pk=None):
+        rendicion = self.get_object()
+        user = request.user
+        
+        # Validate Role (Only CPA or Admin)
+        if user.rol not in ['cpa', 'admin', 'CPA Revisor']:
+            return Response(
+                {'error': 'No tiene permisos para revisar'}, 
+                status=403
+            )
+
+        nuevo_estado = request.data.get('estado')
+        observacion = request.data.get('observacion', '')
+
+        if nuevo_estado not in ['aprobado', 'observado', 'rechazado']:
+            return Response({'error': 'Estado inválido'}, status=400)
+
+        rendicion.estado = nuevo_estado
+        rendicion.observacion = observacion
+        rendicion.revisor = user
+        rendicion.fecha_revision = timezone.now()
+        rendicion.save()
+
+        return Response({'status': 'ok', 'estado': rendicion.estado})
+```
+
+## Automatic Budget Tracking
+
+### Real-Time Total Calculation
+
+The system automatically updates project totals when rendiciones are created or deleted:
+
+```python
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from django.db.models import Sum
+from .models import Rendicion
+
+@receiver([post_save, post_delete], sender=Rendicion)
+def actualizar_total_rendido_proyecto(sender, instance, **kwargs):
+    """
+    Updates the 'total_rendido' field of the associated Project
+    whenever a Rendicion is saved or deleted.
+    """
+    proyecto = instance.proyecto
+    
+    # Calculate total from all rendiciones
+    total = Rendicion.objects.filter(proyecto=proyecto).aggregate(
+        total_sum=Sum('monto_rendido')
+    )['total_sum']
+    
+    proyecto.total_rendido = total or 0
+    
+    # If this is the first rendition and project is approved, move to execution
+    if instance.pk and proyecto.estado == 'aprobado':
+        proyecto.estado = 'ejecucion'
+    
+    proyecto.save(update_fields=['total_rendido', 'estado'])
+```
+
+<Info>
+This signal-based approach ensures that project financial totals are always accurate without manual intervention.
+</Info>
+
+## Budget Monitoring
+
+### Project Budget Fields
+
+Projects track budget allocation and execution:
+
+```python
+class Proyecto(models.Model):
+    # ... other fields
+    presupuesto_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_rendido = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    estado_rendicion = models.CharField(max_length=50, default='Pendiente')
+```
+
+### Budget Calculation Example
+
+To calculate remaining budget:
+
+```python
+def get_budget_status(proyecto):
+    return {
+        'presupuesto_total': proyecto.presupuesto_total,
+        'total_rendido': proyecto.total_rendido,
+        'saldo_disponible': proyecto.presupuesto_total - proyecto.total_rendido,
+        'porcentaje_ejecutado': (
+            (proyecto.total_rendido / proyecto.presupuesto_total * 100) 
+            if proyecto.presupuesto_total > 0 else 0
+        )
+    }
+```
+
+## Period Financial Tracking
+
+### Period Budget Allocation
+
+Each period has assigned funding and carryover from previous periods:
+
+```python
+class Periodo(models.Model):
+    comunidad = models.ForeignKey(Comunidad, on_delete=models.CASCADE, 
+                                   related_name='periodos')
+    nombre = models.CharField(max_length=255)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    monto_asignado = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    monto_anterior = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    activo = models.BooleanField(default=True)
+```
+
+### Total Available Budget
+
+```python
+def get_periodo_budget(periodo):
+    return {
+        'monto_asignado': periodo.monto_asignado,
+        'monto_anterior': periodo.monto_anterior,
+        'total_disponible': periodo.monto_asignado + periodo.monto_anterior,
+        'proyectos_count': periodo.proyecto_set.count(),
+        'total_presupuestado': periodo.proyecto_set.aggregate(
+            total=Sum('presupuesto_total')
+        )['total'] or 0
+    }
+```
+
+## Document Attachments
+
+Expense reports can have multiple supporting documents:
+
+```python
+class Documento(models.Model):
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.SET_NULL, 
+                                  null=True, blank=True)
+    nombre = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=50)
+    archivo = models.FileField(upload_to='documentos/')
+    descripcion = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Documento {self.nombre} - {self.tipo}"
+```
+
+Rendiciones use a ManyToMany relationship:
+
+```python
+documentos_adjuntos = models.ManyToManyField(
+    'documentos.Documento', 
+    related_name='rendiciones_adjuntas', 
+    blank=True
+)
+```
+
+## Filtering and Querying
+
+### Filter by Project and State
+
+The ViewSet supports Django Filter Backend:
+
+```python
+class RendicionViewSet(viewsets.ModelViewSet):
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['proyecto', 'estado']
+```
+
+**Usage:**
+```http
+GET /api/rendiciones/?proyecto=1&estado=pendiente
+GET /api/rendiciones/?estado=aprobado
+```
+
+## API Endpoints
+
+### Review Expense Report
+
+```http
+POST /api/rendiciones/{id}/revisar/
+```
+
+**Request Body:**
+```json
+{
+  "estado": "aprobado",
+  "observacion": "Documentación correcta, monto validado"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "estado": "aprobado"
+}
+```
+
+### Create Expense Report
+
+```http
+POST /api/rendiciones/
+```
+
+**Request Body:**
+```json
+{
+  "proyecto": 1,
+  "descripcion": "Compra de materiales de construcción",
+  "monto_rendido": 1500000,
+  "numero_documento": "F-00123456",
+  "fecha_rendicion": "2026-03-10",
+  "documentos_adjuntos": [1, 2, 3]
+}
+```
+
+### Upload Payment Proof
+
+```http
+PATCH /api/rendiciones/{id}/
+```
+
+**Request Body (multipart/form-data):**
+```
+comprobante_traspaso: <file>
+```
+
+## Financial Reports
+
+### Common Queries
+
+<Tabs>
+  <Tab title="Total Spent by Project">
+    ```python
+    from django.db.models import Sum
+    
+    proyecto = Proyecto.objects.get(id=1)
+    total_gastado = proyecto.rendicion_set.filter(
+        estado='aprobado'
+    ).aggregate(total=Sum('monto_rendido'))['total'] or 0
+    ```
+  </Tab>
+  <Tab title="Pending Reviews">
+    ```python
+    pendientes = Rendicion.objects.filter(
+        proyecto__comunidad=user.comunidad,
+        estado='pendiente'
+    ).order_by('-fecha_rendicion')
+    ```
+  </Tab>
+  <Tab title="Period Summary">
+    ```python
+    periodo = Periodo.objects.get(id=1)
+    proyectos = periodo.proyecto_set.all()
+    
+    summary = {
+        'presupuesto_total': proyectos.aggregate(
+            total=Sum('presupuesto_total')
+        )['total'] or 0,
+        'ejecutado': proyectos.aggregate(
+            total=Sum('total_rendido')
+        )['total'] or 0
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Document Everything" icon="file-invoice">
+    Always attach invoices, receipts, and proof of payment
+  </Card>
+  <Card title="Timely Submission" icon="clock">
+    Submit expense reports promptly after incurring expenses
+  </Card>
+  <Card title="Clear Descriptions" icon="pen">
+    Provide detailed descriptions of what was purchased and why
+  </Card>
+  <Card title="Review Regularly" icon="magnifying-glass">
+    CPAs should review pending rendiciones at least weekly
+  </Card>
+</CardGroup>
+
+<Warning>
+**Important**: Always verify that `monto_rendido` does not exceed the project's remaining budget before approval.
+</Warning>
+
+## Audit Trail
+
+The system maintains a complete audit trail:
+
+- **Who reviewed**: `revisor` field stores the reviewing user
+- **When reviewed**: `fecha_revision` timestamp
+- **What changed**: State transitions from pendiente → aprobado/observado/rechazado
+- **Why changed**: `observacion` field stores reviewer comments
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Project Management" icon="folder-tree" href="/features/project-management">
+    See how budgets relate to project lifecycles
+  </Card>
+  <Card title="Document Management" icon="folder" href="/features/document-management">
+    Learn about attaching supporting documents
+  </Card>
+  <Card title="Audit Workflow" icon="clipboard-check" href="/features/audit-workflow">
+    Understand the complete review process
+  </Card>
+</CardGroup>

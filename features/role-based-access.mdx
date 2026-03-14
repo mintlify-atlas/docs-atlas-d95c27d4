@@ -1,0 +1,334 @@
+---
+title: 'Role-Based Access Control'
+description: 'Comprehensive guide to Auditoriapp role hierarchy and permission system'
+icon: 'user-shield'
+---
+
+## Overview
+
+Auditoriapp implements a **role-based access control (RBAC)** system with seven distinct roles, each with specific permissions and capabilities within their community. Roles control what actions users can perform on projects, financial records, and audits.
+
+## Available Roles
+
+The system defines seven primary roles in the `CustomUser` model:
+
+```python
+class CustomUser(AbstractUser):
+    rol = models.CharField(max_length=20, choices=[
+        ('admin', 'Admin'),
+        ('auditor', 'Auditor'),
+        ('usuario', 'Usuario'),
+        ('directorio', 'Directorio Comunidad'),
+        ('presidente', 'Presidente Comunidad'),
+        ('ito', 'ITO / Responsable'),
+        ('cpa', 'CPA Revisor')
+    ], default='usuario')
+    es_auditor = models.BooleanField(default=False)
+```
+
+### Role Hierarchy
+
+<CardGroup cols={2}>
+  <Card title="Admin" icon="crown">
+    Full system access, can manage users and all community data
+  </Card>
+  <Card title="CPA Revisor" icon="certificate">
+    Can review and approve/reject projects and expense reports
+  </Card>
+  <Card title="Presidente" icon="user-tie">
+    Community president, can submit projects for CPA review
+  </Card>
+  <Card title="Directorio" icon="users">
+    Board member, can submit projects for CPA review
+  </Card>
+  <Card title="ITO / Responsable" icon="hard-hat">
+    Technical officer, reports physical progress on projects
+  </Card>
+  <Card title="Auditor" icon="magnifying-glass">
+    Reviews financial documentation and compliance
+  </Card>
+  <Card title="Usuario" icon="user">
+    Basic user with read-only access to community data
+  </Card>
+</CardGroup>
+
+## Permission Classes
+
+Auditoriapp uses Django REST Framework's permission system with custom permission classes:
+
+```python
+from rest_framework import permissions
+
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.rol == 'admin'
+
+class IsAuditor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and \
+               (request.user.rol == 'auditor' or request.user.es_auditor)
+
+class IsDirectorio(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.rol == 'directorio'
+
+class IsPresidente(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.rol == 'presidente'
+
+class IsITO(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.rol == 'ito'
+
+class IsCPA(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.rol == 'cpa'
+```
+
+## Role-Based Workflow Controls
+
+### Project State Transitions
+
+Different roles can transition projects between states based on their authority:
+
+```python
+@action(detail=True, methods=['post'])
+def cambiar_estado(self, request, pk=None):
+    proyecto = self.get_object()
+    nuevo_estado = request.data.get('nuevo_estado')
+    comentario = request.data.get('comentario', '')
+
+    # 1. Only CPA can approve projects
+    if nuevo_estado == 'aprobado':
+        if request.user.rol != 'cpa':
+            return Response(
+                {'error': 'Solo el CPA puede aprobar proyectos'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if proyecto.estado != 'revision_cpa':
+            return Response(
+                {'error': 'El proyecto debe estar en revisión por el CPA para ser aprobado'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # 2. Presidente or Directorio can submit to CPA
+    elif nuevo_estado == 'revision_cpa':
+        if request.user.rol not in ['presidente', 'directorio', 'admin']:
+            return Response(
+                {'error': 'Solo Presidente o Directorio pueden enviar a CPA'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if proyecto.estado != 'revision_interna':
+            return Response(
+                {'error': 'El proyecto debe haber pasado la revisión interna'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # 3. CPA can issue observations
+    elif nuevo_estado == 'observaciones':
+        if request.user.rol != 'cpa':
+            return Response(
+                {'error': 'Solo el CPA puede emitir observaciones'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+    # Update state and create history record
+    estado_anterior = proyecto.estado
+    proyecto.estado = nuevo_estado
+    proyecto.save()
+
+    HistorialEstado.objects.create(
+        proyecto=proyecto,
+        estado_anterior=estado_anterior,
+        estado_nuevo=nuevo_estado,
+        usuario=request.user,
+        comentario=comentario
+    )
+
+    return Response({
+        'message': f'Estado cambiado a {nuevo_estado}',
+        'estado_anterior': estado_anterior,
+        'estado_nuevo': nuevo_estado
+    })
+```
+
+### Expense Report Review
+
+Only CPA and Admin roles can review and approve expense reports:
+
+```python
+@action(detail=True, methods=['post'])
+def revisar(self, request, pk=None):
+    rendicion = self.get_object()
+    user = request.user
+    
+    # Validate Role (Only CPA or Admin)
+    if user.rol not in ['cpa', 'admin', 'CPA Revisor']:
+        return Response(
+            {'error': 'No tiene permisos para revisar'}, 
+            status=403
+        )
+
+    nuevo_estado = request.data.get('estado')
+    observacion = request.data.get('observacion', '')
+
+    if nuevo_estado not in ['aprobado', 'observado', 'rechazado']:
+        return Response({'error': 'Estado inválido'}, status=400)
+
+    rendicion.estado = nuevo_estado
+    rendicion.observacion = observacion
+    rendicion.revisor = user
+    rendicion.fecha_revision = timezone.now()
+    rendicion.save()
+
+    return Response({'status': 'ok', 'estado': rendicion.estado})
+```
+
+### Physical Progress Reporting
+
+Only ITO (Technical Officer) and Admin can report physical progress:
+
+```python
+class ReporteAvanceViewSet(viewsets.ModelViewSet):
+    serializer_class = ReporteAvanceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return ReporteAvance.objects.filter(
+                proyecto__comunidad=user.comunidad
+            ).order_by('-fecha_reporte')
+        return ReporteAvance.objects.none()
+
+    def perform_create(self, serializer):
+        # Validate Role (Only ITO or Admin)
+        if self.request.user.rol not in ['ito', 'admin']:
+            raise serializers.ValidationError(
+                "Solo el ITO o Admin pueden reportar avance físico."
+            )
+        
+        serializer.save(autor=self.request.user)
+```
+
+## Permission Matrix
+
+<Warning>
+This table shows the key permissions for each role. All actions are scoped to the user's community.
+</Warning>
+
+| Action | Admin | CPA | Presidente | Directorio | ITO | Auditor | Usuario |
+|--------|-------|-----|------------|------------|-----|---------|--------|
+| Create Projects | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Submit to Internal Review | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Submit to CPA Review | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Approve Projects | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Issue Observations | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Report Physical Progress | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Review Expense Reports | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| View Projects | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| View Reports | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+## Authentication Setup
+
+### JWT Configuration
+
+Auditoriapp uses JWT (JSON Web Tokens) for stateless authentication:
+
+```python
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256', 
+    'SIGNING_KEY': SECRET_KEY,
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+}
+```
+
+### User Creation
+
+New users are created with specific roles and community assignments:
+
+```python
+class CreateUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'nombre', 'email', 'password', 'rol', 'comunidad']
+    
+    def create(self, validated_data):
+        user = CustomUser.objects.create_user(**validated_data)
+        return user
+```
+
+## Usage Examples
+
+### Protecting an Endpoint
+
+```python
+from rest_framework import viewsets
+from usuarios.permissions import IsAdmin, IsCPA
+
+class SensitiveViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdmin | IsCPA]  # Admin OR CPA can access
+    # ... rest of viewset
+```
+
+### Checking Permissions in Views
+
+```python
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+@action(detail=True, methods=['post'])
+def sensitive_action(self, request, pk=None):
+    if request.user.rol not in ['admin', 'cpa']:
+        return Response(
+            {'error': 'Insufficient permissions'}, 
+            status=403
+        )
+    # Proceed with action
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Always check authentication">
+    Use `permission_classes = [IsAuthenticated]` as the baseline for all protected endpoints
+  </Step>
+  <Step title="Combine permissions when needed">
+    Use OR (`|`) or AND (`&`) operators to combine permission classes
+  </Step>
+  <Step title="Log permission denials">
+    Track who attempts unauthorized actions for security auditing
+  </Step>
+  <Step title="Return appropriate status codes">
+    Use `403 Forbidden` for permission denials and `401 Unauthorized` for authentication failures
+  </Step>
+</Steps>
+
+<Tip>
+The `es_auditor` boolean flag allows users with any role to also have auditor capabilities. This provides flexibility for users who need multiple responsibilities.
+</Tip>
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Multi-Tenancy" icon="building" href="/features/multi-tenancy">
+    Understand how roles work within tenant boundaries
+  </Card>
+  <Card title="Audit Workflow" icon="clipboard-check" href="/features/audit-workflow">
+    See how roles participate in the audit process
+  </Card>
+</CardGroup>

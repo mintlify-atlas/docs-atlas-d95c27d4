@@ -1,0 +1,836 @@
+---
+title: Architecture
+description: Technical architecture and design patterns of the Auditoriapp platform
+---
+
+## System Architecture
+
+Auditoriapp follows a **decoupled architecture** with a Django REST API backend and a React SPA frontend, communicating via JSON over HTTP.
+
+```mermaid
+graph TB
+    subgraph Client Layer
+        A[React SPA<br/>Vite + React Router]
+    end
+    
+    subgraph API Layer
+        B[Django REST Framework]
+        C[JWT Authentication]
+        D[CORS Middleware]
+    end
+    
+    subgraph Business Logic
+        E[ViewSets & Serializers]
+        F[Multi-Tenant Filters]
+        G[Permission Classes]
+        H[State Machine]
+    end
+    
+    subgraph Data Layer
+        I[Django ORM]
+        J[PostgreSQL/SQLite]
+        K[File Storage]
+    end
+    
+    A -->|HTTP/JSON| D
+    D --> C
+    C --> B
+    B --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    E --> K
+```
+
+## Backend Architecture
+
+### Project Structure
+
+The Django backend is organized into focused applications:
+
+```bash
+backend/
+├── auditoriapp/          # Core configuration
+│   ├── settings.py       # Django settings
+│   ├── urls.py           # URL routing
+│   └── wsgi.py           # WSGI application
+├── usuarios/             # Authentication & user management
+│   ├── models.py         # CustomUser model
+│   ├── views.py          # Login, profile endpoints
+│   ├── serializers.py    # JWT token serializers
+│   └── permissions.py    # Role-based permissions
+├── comunidades/          # Multi-tenant organizations
+│   ├── models.py         # Comunidad, Consejo, Socio
+│   └── views.py          # Community CRUD
+├── periodos/             # Budget periods
+│   ├── models.py         # Periodo model
+│   └── views.py          # Period management
+├── proyectos/            # Project management
+│   ├── models.py         # Proyecto, HistorialEstado, ReporteAvance
+│   ├── views.py          # Project CRUD, state transitions
+│   ├── serializers.py    # Data serialization
+│   └── signals.py        # Event handlers
+├── rendiciones/          # Expense reports
+│   ├── models.py         # Rendicion model
+│   ├── views.py          # Rendition CRUD, review workflow
+│   └── serializers.py    # Data serialization
+├── documentos/           # Document management
+│   ├── models.py         # Documento model
+│   └── views.py          # File upload/download
+├── dashboard/            # Analytics & KPIs
+│   └── views.py          # Dashboard aggregations
+├── reportes/             # Report generation
+└── manage.py             # Django CLI
+```
+
+### Database Schema
+
+<Accordion title="Core Models">
+
+#### CustomUser
+
+Extends Django's `AbstractUser` with multi-tenant and role support:
+
+```python
+# backend/usuarios/models.py
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class CustomUser(AbstractUser):
+    nombre = models.CharField(max_length=100, blank=True)
+    comunidad = models.ForeignKey(
+        'comunidades.Comunidad', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True
+    )
+    rol = models.CharField(max_length=20, choices=[
+        ('admin', 'Admin'),
+        ('auditor', 'Auditor'),
+        ('usuario', 'Usuario'),
+        ('directorio', 'Directorio Comunidad'),
+        ('presidente', 'Presidente Comunidad'),
+        ('ito', 'ITO / Responsable'),
+        ('cpa', 'CPA Revisor')
+    ], default='usuario')
+    telefono = models.CharField(max_length=20, blank=True)
+    es_auditor = models.BooleanField(default=False)
+```
+
+**Key Design Decisions:**
+- Every user belongs to exactly one `comunidad` (except auditors)
+- Role is stored as a string field for flexibility
+- `es_auditor` provides quick access check for cross-tenant visibility
+
+</Accordion>
+
+<Accordion title="Multi-Tenant Models">
+
+#### Comunidad (Community)
+
+The core multi-tenant entity:
+
+```python
+# backend/comunidades/models.py
+class Comunidad(models.Model):
+    nombre = models.CharField(max_length=255)
+    activa = models.BooleanField(default=True)
+    creada_en = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(
+        'usuarios.CustomUser', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='comunidades'
+    )
+```
+
+#### Periodo (Budget Period)
+
+Fiscal periods with budget allocation:
+
+```python
+# backend/periodos/models.py
+class Periodo(models.Model):
+    comunidad = models.ForeignKey(
+        Comunidad, 
+        on_delete=models.CASCADE, 
+        related_name='periodos'
+    )
+    nombre = models.CharField(max_length=255)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    monto_asignado = models.DecimalField(max_digits=15, decimal_places=2)
+    monto_anterior = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    activo = models.BooleanField(default=True)
+    
+    objects = PeriodoManager()  # Custom manager with periodo_actual()
+```
+
+**Custom Manager:**
+```python
+class PeriodoManager(models.Manager):
+    def periodo_actual(self, comunidad):
+        """Get the active period for a community"""
+        hoy = timezone.now().date()
+        return self.filter(
+            comunidad=comunidad, 
+            activo=True, 
+            fecha_inicio__lte=hoy, 
+            fecha_fin__gte=hoy
+        ).order_by('-fecha_inicio').first()
+```
+
+</Accordion>
+
+<Accordion title="Project & Expense Models">
+
+#### Proyecto (Project)
+
+Projects with state machine and governance tracking:
+
+```python
+# backend/proyectos/models.py
+ESTADO_CHOICES = [
+    ('borrador', 'Borrador'),
+    ('revision_interna', 'En Revisión Interna'),
+    ('revision_cpa', 'En Revisión CPA'),
+    ('observaciones', 'Con Observaciones'),
+    ('aprobado', 'Aprobado'),
+    ('ejecucion', 'En Ejecución'),
+    ('cierre', 'Cierre'),
+]
+
+class Proyecto(models.Model):
+    comunidad = models.ForeignKey('comunidades.Comunidad', on_delete=models.CASCADE)
+    periodo = models.ForeignKey('periodos.Periodo', on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(default='') 
+    fecha_inicio = models.DateField(null=True, blank=True) 
+    fecha_fin = models.DateField(null=True, blank=True)
+    presupuesto_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='borrador')
+    
+    # Formulation fields
+    objetivos = models.TextField(blank=True, default='')
+    justificacion = models.TextField(blank=True, default='')
+    beneficiarios_estimados = models.PositiveIntegerField(default=0)
+    
+    # Governance fields
+    quorum_asamblea = models.PositiveIntegerField(default=0)
+    firma_presidente = models.BooleanField(default=False)
+    fecha_firma_presidente = models.DateTimeField(null=True, blank=True)
+```
+
+#### Rendicion (Expense Report)
+
+Expense reports with approval workflow:
+
+```python
+# backend/rendiciones/models.py
+class Rendicion(models.Model):
+    ESTADO_RENDICION = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('observado', 'Con Observaciones'),
+        ('rechazado', 'Rechazado'),
+        ('pagado', 'Pagado'),
+    ]
+    
+    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.CASCADE)
+    descripcion = models.TextField()
+    monto_rendido = models.DecimalField(max_digits=12, decimal_places=2)
+    numero_documento = models.CharField(max_length=50)
+    fecha_rendicion = models.DateField()
+    documentos_adjuntos = models.ManyToManyField(
+        'documentos.Documento', 
+        related_name='rendiciones_adjuntas', 
+        blank=True
+    )
+    estado = models.CharField(max_length=20, choices=ESTADO_RENDICION, default='pendiente')
+    observacion = models.TextField(null=True, blank=True)
+    revisor = models.ForeignKey(
+        'usuarios.CustomUser', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='rendiciones_revisadas'
+    )
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+```
+
+</Accordion>
+
+### Multi-Tenant Data Isolation
+
+**Query Filtering Pattern:**
+
+Every ViewSet implements tenant-aware filtering:
+
+```python
+# backend/proyectos/views.py
+class ProyectoViewSet(viewsets.ModelViewSet):
+    serializer_class = ProyectoSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'comunidad') and user.comunidad:
+            return Proyecto.objects.filter(comunidad=user.comunidad)
+        return Proyecto.objects.none()  # No data for users without community
+```
+
+**Automatic Community Assignment:**
+
+```python
+def perform_create(self, serializer):
+    if self.request.user.rol == 'Admin Comunidad':
+        serializer.save(comunidad=self.request.user.comunidad)
+    else:
+        serializer.save()
+```
+
+<Warning>
+Never bypass the `get_queryset()` filter in production code. This is the primary security boundary between tenants.
+</Warning>
+
+### Authentication & Authorization
+
+**JWT Token Configuration:**
+
+```python
+# backend/auditoriapp/settings.py
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256', 
+    'SIGNING_KEY': SECRET_KEY,
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',  # Override per-view
+    ),
+}
+```
+
+**Custom Token Serializer:**
+
+```python
+# backend/usuarios/serializers.py
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        
+        # Add custom claims
+        token['username'] = user.username
+        token['rol'] = user.rol
+        token['comunidad_id'] = user.comunidad.id if user.comunidad else None
+        
+        return token
+```
+
+**Role-Based Permissions:**
+
+```python
+# backend/usuarios/permissions.py
+from rest_framework.permissions import BasePermission
+
+class IsCPA(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.rol == 'cpa'
+
+class IsPresidente(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.rol == 'presidente'
+```
+
+### State Machine for Projects
+
+Projects flow through a controlled state machine with role-based transitions:
+
+```python
+# backend/proyectos/views.py
+@action(detail=True, methods=['post'])
+def cambiar_estado(self, request, pk=None):
+    proyecto = self.get_object()
+    nuevo_estado = request.data.get('nuevo_estado')
+    comentario = request.data.get('comentario', '')
+    
+    # State transition rules
+    
+    # Rule 1: Only CPA can approve
+    if nuevo_estado == 'aprobado':
+        if request.user.rol != 'cpa':
+            return Response(
+                {'error': 'Only CPA can approve projects'}, 
+                status=403
+            )
+        if proyecto.estado != 'revision_cpa':
+            return Response(
+                {'error': 'Project must be in CPA review to be approved'}, 
+                status=400
+            )
+    
+    # Rule 2: Draft -> Internal Review
+    elif nuevo_estado == 'revision_interna':
+        if proyecto.estado not in ['borrador', 'observaciones']:
+            return Response({'error': 'Invalid transition'}, status=400)
+    
+    # Rule 3: Internal -> CPA Review (President/Director only)
+    elif nuevo_estado == 'revision_cpa':
+        if request.user.rol not in ['presidente', 'directorio', 'admin']:
+            return Response(
+                {'error': 'Only President or Director can send to CPA'}, 
+                status=403
+            )
+        if proyecto.estado != 'revision_interna':
+            return Response(
+                {'error': 'Project must pass internal review first'}, 
+                status=400
+            )
+    
+    # Update state
+    estado_anterior = proyecto.estado
+    proyecto.estado = nuevo_estado
+    proyecto.save()
+    
+    # Record history
+    HistorialEstado.objects.create(
+        proyecto=proyecto,
+        estado_anterior=estado_anterior,
+        estado_nuevo=nuevo_estado,
+        usuario=request.user,
+        comentario=comentario
+    )
+    
+    return Response({
+        'estado_anterior': estado_anterior,
+        'estado_nuevo': nuevo_estado
+    })
+```
+
+**State Transition Diagram:**
+
+```mermaid
+stateDiagram-v2
+    [*] --> Borrador
+    Borrador --> RevisionInterna
+    RevisionInterna --> RevisionCPA
+    RevisionCPA --> Aprobado: CPA approves
+    RevisionCPA --> Observaciones: CPA rejects
+    Observaciones --> RevisionInterna: Community fixes
+    Aprobado --> Ejecucion
+    Ejecucion --> Cierre
+    Cierre --> [*]
+```
+
+## Frontend Architecture
+
+### Project Structure
+
+```bash
+frontend/
+├── src/
+│   ├── App.jsx              # Main app component, routing
+│   ├── main.jsx             # Entry point
+│   ├── components/
+│   │   ├── Layout.jsx       # Main layout with sidebar
+│   │   └── TablaGenerica.jsx # Reusable table component
+│   ├── pages/
+│   │   ├── Login.jsx        # Authentication page
+│   │   ├── Dashboard.jsx    # KPI dashboard with charts
+│   │   ├── Proyectos.jsx    # Project list & creation
+│   │   ├── ProyectoDetalle.jsx  # Project detail view
+│   │   ├── Periodos.jsx     # Period management
+│   │   ├── CrearPeriodo.jsx # Period creation
+│   │   ├── Rendiciones.jsx  # Expense reports
+│   │   └── Socios.jsx       # Community members
+│   ├── utils/
+│   │   └── api.js           # API utility with token handling
+│   ├── styles/
+│   └── assets/
+├── index.html
+├── vite.config.js
+├── tailwind.config.js
+└── package.json
+```
+
+### Routing & Authentication
+
+```jsx
+// frontend/src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem('access')
+  );
+  
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.rol && user.rol.toLowerCase().includes('admin')) {
+      setRedirectTo('/crear-periodo');
+    } else {
+      setRedirectTo('/dashboard');
+    }
+  };
+  
+  if (!isAuthenticated) {
+    return (
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="*" element={<Login onLogin={handleLogin} />} />
+        </Routes>
+      </Router>
+    );
+  }
+  
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/proyectos" element={<Proyectos />} />
+          <Route path="/proyectos/:id" element={<ProyectoDetalle />} />
+          <Route path="/periodos" element={<Periodos />} />
+          <Route path="/crear-periodo" element={<CrearPeriodo />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}
+```
+
+### API Communication
+
+**Token-Aware Fetch Wrapper:**
+
+```javascript
+// frontend/src/utils/api.js
+export async function apiFetch(endpoint, options = {}) {
+  const token = localStorage.getItem('access');
+  
+  const defaultOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...options.headers,
+    },
+  };
+  
+  const response = await fetch(
+    `http://localhost:8000${endpoint}`, 
+    { ...defaultOptions, ...options }
+  );
+  
+  // Handle 401 Unauthorized (token expired)
+  if (response.status === 401) {
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    window.location.href = '/login';
+  }
+  
+  return response;
+}
+```
+
+### State Management
+
+Auditoriapp uses **local component state** with hooks instead of global state management:
+
+```jsx
+// frontend/src/pages/Dashboard.jsx
+import { useState, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
+
+export default function Dashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        const res = await apiFetch('/dashboard/kpis/');
+        if (res.ok) {
+          const json = await res.json();
+          setData(json);
+        }
+      } catch (e) {
+        console.error("Error fetching dashboard", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDashboard();
+  }, []);
+  
+  if (loading) return <LoadingSpinner />;
+  if (!data) return <ErrorMessage />;
+  
+  return <DashboardContent data={data} />;
+}
+```
+
+**Why No Redux/Context?**
+- Simple data flow for most pages
+- Server is source of truth
+- JWT in localStorage is sufficient for auth state
+- Reduces complexity and bundle size
+
+### UI Components
+
+**TailwindCSS + DaisyUI:**
+
+```jsx
+// Example: Project card
+<div className="card bg-base-100 shadow-xl">
+  <div className="card-body">
+    <h2 className="card-title">{proyecto.nombre}</h2>
+    <p>{proyecto.descripcion}</p>
+    <div className="badge badge-primary">{proyecto.estado}</div>
+    <div className="card-actions justify-end">
+      <button className="btn btn-primary">Ver Detalle</button>
+    </div>
+  </div>
+</div>
+```
+
+**Recharts for Visualizations:**
+
+```jsx
+// frontend/src/pages/Dashboard.jsx
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+
+const COLORS = ['#6F574E', '#8a7871ff', '#ccb7afff', '#9CA3AF'];
+
+<ResponsiveContainer width="100%" height={300}>
+  <PieChart>
+    <Pie
+      data={charts.rendiciones.filter(d => d.value > 0)}
+      cx="50%"
+      cy="50%"
+      labelLine={true}
+      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+      outerRadius={80}
+      dataKey="value"
+    >
+      {charts.rendiciones.map((entry, index) => (
+        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+      ))}
+    </Pie>
+    <Tooltip />
+    <Legend />
+  </PieChart>
+</ResponsiveContainer>
+```
+
+## File Upload Architecture
+
+**Upload-First Pattern:**
+
+Documents are uploaded before project creation, then linked:
+
+```javascript
+// frontend/src/pages/Proyectos.jsx
+const uploadFile = async (file, tipo) => {
+  const formData = new FormData();
+  formData.append("archivo", file);
+  formData.append("nombre", file.name);
+  formData.append("tipo", tipo);  // 'Acta', 'Cotizaciones', etc.
+  formData.append("proyecto", "");  // Linked later
+  
+  const res = await fetch("http://localhost:8000/api/documentos/", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData
+  });
+  
+  if (res.ok) {
+    const doc = await res.json();  // { id: 42, nombre: 'acta.pdf' }
+    return doc;
+  }
+};
+
+const handleFileChange = async (e, tipo) => {
+  const file = e.target.files[0];
+  const doc = await uploadFile(file, tipo);
+  
+  if (doc) {
+    setNuevoProyecto(prev => ({
+      ...prev,
+      documentos_ids: [...prev.documentos_ids, doc.id]
+    }));
+  }
+};
+```
+
+**Backend Document Model:**
+
+```python
+# backend/documentos/models.py
+class Documento(models.Model):
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    proyecto = models.ForeignKey(
+        'proyectos.Proyecto', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
+    nombre = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=50)  # 'Acta', 'Cotizaciones', etc.
+    archivo = models.FileField(upload_to='documentos/')
+    descripcion = models.TextField(blank=True)
+```
+
+## Deployment Architecture
+
+### Development
+
+```bash
+# Backend: Django development server
+python manage.py runserver  # Port 8000
+
+# Frontend: Vite dev server
+npm run dev  # Port 5173
+```
+
+### Production (cPanel)
+
+```bash
+# Backend: Gunicorn + Nginx
+gunicorn auditoriapp.wsgi:application --bind 0.0.0.0:8000
+
+# Frontend: Static build served by Nginx
+npm run build  # Outputs to dist/
+# Copy dist/ to web root
+```
+
+**Environment Variables:**
+
+```bash
+# Production .env
+DEBUG=False
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+DATABASE_URL=postgresql://user:pass@localhost/auditoria_db
+SECRET_KEY=<generated-secret-key>
+CORS_ALLOWED_ORIGINS=https://yourdomain.com
+```
+
+## Performance Considerations
+
+### Database Optimization
+
+**Select Related:**
+
+```python
+# Avoid N+1 queries
+Proyecto.objects.filter(comunidad=comunidad).select_related(
+    'comunidad', 'periodo'
+).prefetch_related('historial', 'reportes_avance')
+```
+
+**Aggregations:**
+
+```python
+# Use database aggregations instead of Python loops
+from django.db.models import Sum, Count
+
+presupuesto_total = proyectos_qs.aggregate(
+    Sum('presupuesto_total')
+)['presupuesto_total__sum'] or 0
+```
+
+### Frontend Optimization
+
+**Code Splitting:**
+
+Vite automatically splits routes into separate chunks:
+
+```javascript
+// Lazy load routes
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Proyectos = lazy(() => import('./pages/Proyectos'));
+```
+
+**Memoization:**
+
+```jsx
+import { useMemo } from 'react';
+
+const dataParaTabla = useMemo(() => {
+  return proyectos.map(p => ({
+    nombre: p.nombre,
+    presupuesto: formatMonto(p.presupuesto_total)
+  }));
+}, [proyectos]);
+```
+
+## Security Best Practices
+
+<CardGroup cols={2}>
+  <Card title="JWT Security" icon="lock">
+    - Short-lived access tokens (60 min)
+    - Refresh token rotation
+    - Token blacklisting on rotation
+    - HTTPS-only in production
+  </Card>
+  
+  <Card title="Data Isolation" icon="shield">
+    - ORM-level filters on every query
+    - No raw SQL queries
+    - Community ID validation
+    - Auditor role exceptions only
+  </Card>
+  
+  <Card title="File Upload" icon="file">
+    - Validated file types
+    - Isolated media storage
+    - Per-project access control
+    - Virus scanning (recommended)
+  </Card>
+  
+  <Card title="CORS & CSRF" icon="globe">
+    - Whitelist allowed origins
+    - CSRF tokens for state-changing ops
+    - Credentials allowed
+    - No wildcard origins in prod
+  </Card>
+</CardGroup>
+
+<Warning>
+**Production Checklist:**
+- Set `DEBUG=False` in Django settings
+- Use strong `SECRET_KEY` (32+ chars)
+- Enable HTTPS with valid SSL certificate
+- Configure firewall to allow only ports 80/443
+- Set up automated database backups
+- Enable Django's security middleware
+- Use environment variables for secrets
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Detailed endpoint documentation
+  </Card>
+  
+  <Card title="Deployment Guide" icon="rocket" href="/admin/deployment">
+    Production deployment instructions
+  </Card>
+</CardGroup>

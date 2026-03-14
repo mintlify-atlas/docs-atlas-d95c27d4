@@ -1,0 +1,443 @@
+---
+title: 'Expenses (Rendiciones)'
+description: 'Endpoints for managing expense submissions and reimbursements'
+---
+
+## Expense Submissions
+
+### List Expenses
+
+<api method="GET" endpoint="/api/rendiciones/" auth="bearer" />
+
+Retrieve all expense submissions (rendiciones) for the authenticated user's community.
+
+**Authentication Required:** Yes
+
+**Filtering:** Results are automatically filtered by the authenticated user's community.
+
+**Query Parameters:**
+
+<ParamField query="proyecto" type="integer">
+  Filter by project ID
+</ParamField>
+
+<ParamField query="estado" type="string">
+  Filter by status: `pendiente`, `aprobado`, `observado`, `rechazado`, `pagado`
+</ParamField>
+
+<ResponseExample>
+```json
+[
+  {
+    "id": 1,
+    "proyecto": 1,
+    "proyecto_nombre": "Mejoramiento Plaza Central",
+    "descripcion": "Compra de materiales de construcción",
+    "monto_rendido": "125000.00",
+    "numero_documento": "F001-12345",
+    "fecha_rendicion": "2024-03-10",
+    "documentos_adjuntos": [
+      {
+        "id": 20,
+        "nombre": "Factura Materiales",
+        "tipo": "Factura",
+        "archivo": "/media/documentos/factura_20.pdf",
+        "descripcion": "Factura de compra",
+        "fecha_subida": "2024-03-10T09:30:00Z",
+        "proyecto": 1
+      }
+    ],
+    "comprobante_traspaso": "/media/comprobantes_pago/traspaso_1.pdf",
+    "estado": "aprobado",
+    "observacion": "",
+    "revisor": "660e8400-e29b-41d4-a716-446655440002",
+    "fecha_revision": "2024-03-12T14:20:00Z"
+  },
+  {
+    "id": 2,
+    "proyecto": 1,
+    "proyecto_nombre": "Mejoramiento Plaza Central",
+    "descripcion": "Pago a contratista",
+    "monto_rendido": "75000.00",
+    "numero_documento": "B002-54321",
+    "fecha_rendicion": "2024-03-05",
+    "documentos_adjuntos": [],
+    "comprobante_traspaso": null,
+    "estado": "pendiente",
+    "observacion": null,
+    "revisor": null,
+    "fecha_revision": null
+  }
+]
+```
+</ResponseExample>
+
+<ResponseField name="id" type="integer">
+  Expense submission unique identifier
+</ResponseField>
+
+<ResponseField name="proyecto" type="integer">
+  ID of the associated project
+</ResponseField>
+
+<ResponseField name="proyecto_nombre" type="string">
+  Name of the associated project
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Description of the expense
+</ResponseField>
+
+<ResponseField name="monto_rendido" type="string">
+  Amount submitted for reimbursement (decimal)
+</ResponseField>
+
+<ResponseField name="numero_documento" type="string">
+  Invoice or receipt number
+</ResponseField>
+
+<ResponseField name="fecha_rendicion" type="string">
+  Expense date (YYYY-MM-DD)
+</ResponseField>
+
+<ResponseField name="documentos_adjuntos" type="array">
+  Array of attached document objects
+</ResponseField>
+
+<ResponseField name="comprobante_traspaso" type="string">
+  File path to transfer receipt/proof of payment
+</ResponseField>
+
+<ResponseField name="estado" type="string">
+  Status: `pendiente`, `aprobado`, `observado`, `rechazado`, `pagado`
+</ResponseField>
+
+<ResponseField name="observacion" type="string">
+  Reviewer's observations (if any)
+</ResponseField>
+
+<ResponseField name="revisor" type="string">
+  User ID of the reviewer
+</ResponseField>
+
+<ResponseField name="fecha_revision" type="string">
+  Timestamp when the review was completed
+</ResponseField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.auditoriapp.com/api/rendiciones/?proyecto=1&estado=pendiente" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+params = {
+    'proyecto': 1,
+    'estado': 'pendiente'
+}
+
+response = requests.get(
+    'https://api.auditoriapp.com/api/rendiciones/',
+    headers=headers,
+    params=params
+)
+rendiciones = response.json()
+```
+</CodeGroup>
+
+---
+
+### Create Expense Submission
+
+<api method="POST" endpoint="/api/rendiciones/" auth="bearer" />
+
+Create a new expense submission. Documents must be uploaded first via the Documents API.
+
+**Authentication Required:** Yes
+
+<ParamField body="proyecto" type="integer" required>
+  Project ID
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Description of the expense
+</ParamField>
+
+<ParamField body="monto_rendido" type="string" required>
+  Amount to be reimbursed (decimal)
+</ParamField>
+
+<ParamField body="numero_documento" type="string">
+  Invoice or receipt number
+</ParamField>
+
+<ParamField body="fecha_rendicion" type="string" required>
+  Expense date (YYYY-MM-DD format)
+</ParamField>
+
+<ParamField body="documentos_ids" type="array">
+  Array of document IDs to attach (pre-uploaded documents)
+</ParamField>
+
+<ParamField body="comprobante_traspaso" type="file">
+  Transfer receipt file (proof of payment)
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 3,
+  "proyecto": 1,
+  "proyecto_nombre": "Mejoramiento Plaza Central",
+  "descripcion": "Compra de herramientas",
+  "monto_rendido": "35000.00",
+  "numero_documento": "F001-67890",
+  "fecha_rendicion": "2024-03-14",
+  "documentos_adjuntos": [
+    {
+      "id": 25,
+      "nombre": "Factura Herramientas",
+      "tipo": "Factura",
+      "archivo": "/media/documentos/factura_25.pdf",
+      "descripcion": "",
+      "fecha_subida": "2024-03-14T10:15:00Z",
+      "proyecto": 1
+    }
+  ],
+  "comprobante_traspaso": null,
+  "estado": "pendiente",
+  "observacion": null,
+  "revisor": null,
+  "fecha_revision": null
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/rendiciones/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proyecto": 1,
+    "descripcion": "Compra de herramientas",
+    "monto_rendido": "35000.00",
+    "numero_documento": "F001-67890",
+    "fecha_rendicion": "2024-03-14",
+    "documentos_ids": [25]
+  }'
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'proyecto': 1,
+    'descripcion': 'Compra de herramientas',
+    'monto_rendido': '35000.00',
+    'numero_documento': 'F001-67890',
+    'fecha_rendicion': '2024-03-14',
+    'documentos_ids': [25]
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/rendiciones/',
+    headers=headers,
+    json=data
+)
+rendicion = response.json()
+```
+</CodeGroup>
+
+---
+
+### Get Expense Details
+
+<api method="GET" endpoint="/api/rendiciones/{id}/" auth="bearer" />
+
+Retrieve details of a specific expense submission.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Expense submission ID
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "id": 1,
+  "proyecto": 1,
+  "proyecto_nombre": "Mejoramiento Plaza Central",
+  "descripcion": "Compra de materiales de construcción",
+  "monto_rendido": "125000.00",
+  "numero_documento": "F001-12345",
+  "fecha_rendicion": "2024-03-10",
+  "documentos_adjuntos": [
+    {
+      "id": 20,
+      "nombre": "Factura Materiales",
+      "tipo": "Factura",
+      "archivo": "/media/documentos/factura_20.pdf",
+      "descripcion": "Factura de compra",
+      "fecha_subida": "2024-03-10T09:30:00Z",
+      "proyecto": 1
+    }
+  ],
+  "comprobante_traspaso": "/media/comprobantes_pago/traspaso_1.pdf",
+  "estado": "aprobado",
+  "observacion": "",
+  "revisor": "660e8400-e29b-41d4-a716-446655440002",
+  "fecha_revision": "2024-03-12T14:20:00Z"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.auditoriapp.com/api/rendiciones/1/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+---
+
+### Update Expense Submission
+
+<api method="PUT" endpoint="/api/rendiciones/{id}/" auth="bearer" />
+<api method="PATCH" endpoint="/api/rendiciones/{id}/" auth="bearer" />
+
+Update an expense submission (PUT for full update, PATCH for partial).
+
+**Authentication Required:** Yes
+
+**Note:** The fields `estado`, `observacion`, `revisor`, and `fecha_revision` are read-only and can only be modified via the review action.
+
+<ParamField path="id" type="integer" required>
+  Expense submission ID
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Description of the expense
+</ParamField>
+
+<ParamField body="monto_rendido" type="string">
+  Amount to be reimbursed
+</ParamField>
+
+<ParamField body="numero_documento" type="string">
+  Invoice or receipt number
+</ParamField>
+
+<ParamField body="fecha_rendicion" type="string">
+  Expense date (YYYY-MM-DD)
+</ParamField>
+
+---
+
+### Review Expense Submission
+
+<api method="POST" endpoint="/api/rendiciones/{id}/revisar/" auth="bearer" />
+
+Review an expense submission and update its status. Only CPA and Admin roles can review.
+
+**Authentication Required:** Yes (CPA or Admin role)
+
+<ParamField path="id" type="integer" required>
+  Expense submission ID
+</ParamField>
+
+<ParamField body="estado" type="string" required>
+  New status: `aprobado`, `observado`, or `rechazado`
+</ParamField>
+
+<ParamField body="observacion" type="string">
+  Reviewer's observations or comments
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "status": "ok",
+  "estado": "aprobado"
+}
+```
+</ResponseExample>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.auditoriapp.com/api/rendiciones/2/revisar/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "estado": "aprobado",
+    "observacion": "Documentación completa y correcta"
+  }'
+```
+
+```python Python
+import requests
+
+headers = {'Authorization': f'Bearer {access_token}'}
+data = {
+    'estado': 'observado',
+    'observacion': 'Falta factura original'
+}
+
+response = requests.post(
+    'https://api.auditoriapp.com/api/rendiciones/2/revisar/',
+    headers=headers,
+    json=data
+)
+result = response.json()
+```
+</CodeGroup>
+
+---
+
+### Delete Expense Submission
+
+<api method="DELETE" endpoint="/api/rendiciones/{id}/" auth="bearer" />
+
+Delete an expense submission.
+
+**Authentication Required:** Yes
+
+<ParamField path="id" type="integer" required>
+  Expense submission ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api.auditoriapp.com/api/rendiciones/3/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+</CodeGroup>
+
+## Expense States
+
+| State | Description |
+|-------|-------------|
+| `pendiente` | Pending review - Initial submission |
+| `aprobado` | Approved by CPA/Admin |
+| `observado` | Has observations - Requires corrections |
+| `rechazado` | Rejected - Not valid |
+| `pagado` | Paid - Reimbursement completed |
+
+## Workflow
+
+1. **Submit**: User creates expense submission with `pendiente` status
+2. **Review**: CPA/Admin reviews and sets status to `aprobado`, `observado`, or `rechazado`
+3. **Payment**: If approved, status can be updated to `pagado` when reimbursement is processed
+4. **Corrections**: If `observado`, user can update and resubmit for review
+
+## Financial Reports
+
+Expense submissions marked as `pagado` are included in:
+- Period closing calculations
+- Dashboard KPIs
+- Project total expenditure tracking
