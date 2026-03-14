@@ -1,0 +1,102 @@
+{
+  "projectType": "saas",
+  "projectName": "Auditoriapp",
+  "projectDescription": "Multi-tenant SaaS platform for audit, traceability, and transparent fund management for community projects",
+  "theme": "mint",
+  "primaryColor": "#94cb04",
+  "lightColor": "#545454",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "architecture"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/multi-tenancy",
+              "features/role-based-access",
+              "features/project-management",
+              "features/financial-tracking",
+              "features/audit-workflow",
+              "features/document-management"
+            ]
+          },
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/community-admin",
+              "guides/auditor",
+              "guides/creating-projects",
+              "guides/expense-reporting",
+              "guides/reviewing-expenses"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "admin/installation",
+              "admin/configuration",
+              "admin/user-management",
+              "admin/deployment"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/users",
+              "api/communities",
+              "api/periods",
+              "api/projects",
+              "api/expenses",
+              "api/documents",
+              "api/dashboard"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-tenant data isolation",
+    "Role-based access control (Community Admin, Auditor, President, ITO, CPA)",
+    "Project lifecycle management with approval workflows",
+    "Financial tracking and budget management",
+    "Expense reporting and audit trail",
+    "Document management for receipts and evidence",
+    "Real-time dashboard with KPIs and analytics",
+    "Period-based budget allocation"
+  ],
+  "publicApiSurface": [
+    "/api/auth/ - User authentication and JWT token management",
+    "/api/comunidades/ - Community (tenant) management",
+    "/api/periodos/ - Budget period management",
+    "/api/proyectos/ - Project CRUD and lifecycle",
+    "/api/rendiciones/ - Expense reporting and review",
+    "/api/documentos/ - Document upload and management",
+    "/api/dashboard/ - KPI and analytics data",
+    "/api/auditores/ - Auditor-specific operations",
+    "/api/reportes/ - Report generation",
+    "/api/finanzas/ - Financial data and tracking"
+  ]
+}
